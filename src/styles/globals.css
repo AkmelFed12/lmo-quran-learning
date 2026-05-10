@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme {
+  --color-emerald-50: #f0fdf6;
+  --color-emerald-500: #10b981;
+  --color-emerald-600: #059669;
+  --color-emerald-700: #047857;
+  --color-emerald-900: #064e3b;
+  --color-emerald-950: #022c22;
+  --color-gold: #C9A44B;
+  --color-darkgold: #D4AF37;
+  --font-heading: "Playfair Display", serif;
+  --font-body: "Inter", sans-serif;
+  --font-arabic: "Amiri", serif;
+  --background-image-arabesque: url('/images/arabesque.svg');
+}
+
+@layer base {
+  body {
+    font-family: var(--font-body);
+    @apply antialiased;
+  }
+  .font-arabic {
+    font-family: var(--font-arabic);
+  }
+}
+
+@layer components {
+  .card-premium {
+    @apply bg-white dark:bg-slate-800 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl shadow-sm hover:shadow-md hover:border-gold/30 transition-all duration-300;
+  }
+  .btn-emerald {
+    @apply inline-flex items-center justify-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-emerald-700 shadow-lg shadow-emerald-200/50 dark:shadow-emerald-800/20 transition-all hover:scale-[1.02];
+  }
+}
