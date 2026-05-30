@@ -11,13 +11,22 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return signedIn() && (request.auth.token.email == "admin@gmail.com" || hasRole("admin"));
+      return hasRole("admin");
     }
 
     function hasRole(role) {
       return signedIn()
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
+    function isActiveAccount() {
+      return signedIn()
+        && (
+          !exists(/databases/$(database)/documents/users/$(request.auth.uid))
+          || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.disabled != true
+          || isAdmin()
+        );
     }
 
     function isStaff() {
@@ -35,30 +44,33 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isOwner(userId) || isStaff();
       allow create: if isAdmin() || (isOwner(userId) && userRoleSafeOnCreate());
-      allow update: if isAdmin() || (isOwner(userId) && userRoleUnchanged());
+      allow update: if isAdmin() || (isOwner(userId) && isActiveAccount() && userRoleUnchanged());
       allow delete: if false;
 
       match /learningSessions/{sessionId} {
-        allow read, write: if isOwner(userId) || isAdmin();
+        allow read: if isOwner(userId) || isAdmin();
+        allow write: if isAdmin() || (isOwner(userId) && isActiveAccount());
       }
     }
 
     match /progress/{userId} {
-      allow read, write: if isOwner(userId) || isAdmin();
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isAdmin() || (isOwner(userId) && isActiveAccount());
     }
 
     match /memorization/{userId} {
-      allow read, write: if isOwner(userId) || isAdmin();
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isAdmin() || (isOwner(userId) && isActiveAccount());
     }
 
     match /rankings/{day}/users/{userId} {
       allow read: if true;
-      allow write: if isOwner(userId) || isAdmin();
+      allow write: if isAdmin() || (isOwner(userId) && isActiveAccount());
     }
 
     match /dailyQuizzes/{quizId} {
       allow read: if signedIn();
-      allow create: if signedIn();
+      allow create: if isActiveAccount();
       allow update, delete: if isAdmin();
     }
 
@@ -101,40 +113,41 @@ service cloud.firestore {
 
     match /certificates/{certificateId} {
       allow read: if signedIn() && (resource.data.userId == request.auth.uid || isStaff());
-      allow create, update: if signedIn() && (request.resource.data.userId == request.auth.uid || isStaff());
+      allow create, update: if isActiveAccount() && (request.resource.data.userId == request.auth.uid || isStaff());
       allow delete: if isAdmin();
     }
 
     match /testimonials/{testimonialId} {
       allow read: if true;
-      allow create: if signedIn();
+      allow create: if isActiveAccount();
       allow update, delete: if isAdmin();
     }
 
     match /forum/{messageId} {
       allow read: if signedIn();
-      allow create: if signedIn();
+      allow create: if isActiveAccount();
       allow update: if isAdmin()
-        || (signedIn()
+        || (isActiveAccount()
           && request.resource.data.diff(resource.data).changedKeys().hasOnly(["replies"]))
-        || (signedIn()
+        || (isActiveAccount()
           && resource.data.uid == request.auth.uid
           && request.resource.data.diff(resource.data).changedKeys().hasOnly(["hidden", "hiddenAt", "hiddenBy"]));
       allow delete: if false;
     }
 
     match /plannings/{userId} {
-      allow read, write: if isOwner(userId) || isAdmin();
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isAdmin() || (isOwner(userId) && isActiveAccount());
     }
 
     match /challenges/{challengeId}/participants/{userId} {
       allow read: if signedIn();
-      allow write: if isOwner(userId) || isAdmin();
+      allow write: if isAdmin() || (isOwner(userId) && isActiveAccount());
     }
 
     match /stats/{document} {
       allow read: if true;
-      allow create, update: if signedIn() || isAdmin();
+      allow create, update: if isActiveAccount() || isAdmin();
       allow delete: if isAdmin();
     }
 

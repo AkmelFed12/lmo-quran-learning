@@ -11,7 +11,6 @@ import {
 import { signOut } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { motion, AnimatePresence } from "framer-motion";
-import { isAdminUser } from "@/lib/admin";
 import { doc, getDoc } from "firebase/firestore";
 import { type UserRole, isStaffRole } from "@/lib/admin-roles";
 
@@ -35,7 +34,7 @@ const sidebarLinks = [
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, profile, disabled, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -61,10 +60,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       setCheckingRole(false);
       return;
     }
+    if (disabled) {
+      void signOut(auth);
+      router.push("/admin/login");
+      setCheckingRole(false);
+      return;
+    }
 
     const loadRole = async () => {
       setCheckingRole(true);
-      if (isAdminUser(user)) {
+      if (profile?.role === "admin") {
         setRole("admin");
         setCheckingRole(false);
         return;
@@ -86,7 +91,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     };
 
     void loadRole();
-  }, [loading, pathname, router, user]);
+  }, [disabled, loading, pathname, profile?.role, router, user]);
 
   if (pathname === "/admin/login") return <>{children}</>;
   if (loading || checkingRole) return <Loading />;

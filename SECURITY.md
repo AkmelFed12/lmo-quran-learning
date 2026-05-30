@@ -9,10 +9,13 @@ Ce projet ne doit jamais supprimer les donnees des apprenants deja inscrits sans
 - Preferer les actions reversibles dans l'administration : suspension, archivage, changement de statut.
 - Toute modification de `firestore.rules` ou `storage.rules` doit passer par lint/build et revue avant deploiement.
 - Avant toute migration de donnees, faire un export/sauvegarde et tester sur un environnement de preproduction.
+- Les acces administrateur doivent passer par le champ `role: "admin"` du document utilisateur, pas par un e-mail code en dur.
 
 ## Utilisateurs existants
 
 Les profils dans `users`, les progressions, les memorisations, les certificats et les donnees d'apprentissage doivent etre conserves. La suspension d'un utilisateur marque le document avec `disabled: true`, mais ne supprime pas le document ni les sous-collections.
+
+Un compte suspendu conserve ses donnees mais ne doit plus pouvoir ecrire dans les collections d'apprentissage ni televerser de fichier personnel.
 
 ## Secrets a verifier hors Git
 
@@ -25,4 +28,5 @@ Les profils dans `users`, les progressions, les memorisations, les certificats e
 ```bash
 npm run lint
 npm run build
+npm run verify
 ```

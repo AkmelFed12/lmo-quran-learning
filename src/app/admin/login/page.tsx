@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Shield, Lock, Mail, ArrowRight } from "lucide-react";
-import { ADMIN_EMAIL } from "@/lib/admin";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -18,10 +17,6 @@ export default function AdminLoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email !== ADMIN_EMAIL) {
-      toast.error("Accès réservé à l'administrateur.");
-      return;
-    }
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
