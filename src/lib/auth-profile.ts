@@ -13,14 +13,19 @@ export async function upsertLearnerProfile(user: User, options: ProfileOptions =
     uid: user.uid,
     displayName: user.displayName || "Apprenant",
     email: user.email,
-    level: 1,
-    xp: 0,
-    dailyGoal: 10,
-    onboardingDone: false,
     providerIds: user.providerData.map((provider) => provider.providerId),
     lastLoginAt: now,
     updatedAt: now,
-    ...(options.isNewUser ? { role: "user", createdAt: now } : {}),
+    ...(options.isNewUser
+      ? {
+          role: "user",
+          level: 1,
+          xp: 0,
+          dailyGoal: 10,
+          onboardingDone: false,
+          createdAt: now,
+        }
+      : {}),
   };
 
   await setDoc(

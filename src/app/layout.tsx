@@ -7,6 +7,8 @@ import { Toaster } from "sonner";
 import PwaUpdatePrompt from "@/components/shared/PwaUpdatePrompt";
 import AdSenseScript from "@/components/monetization/AdSenseScript";
 import CacheRecoveryScript from "@/components/shared/CacheRecoveryScript";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -68,6 +70,20 @@ export const metadata: Metadata = {
     description: "Apprendre à lire le Coran pas à pas, avec un parcours simple et régulier.",
     images: ["/icon-512.png"],
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: [
       { url: "/icon.png", type: "image/png" },
@@ -98,6 +114,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
             <PwaUpdatePrompt />
             <Toaster richColors position="top-center" />
+            <Analytics />
+            <SpeedInsights />
           </LocaleProvider>
         </ThemeProvider>
       </body>

@@ -23,6 +23,7 @@ export default function AdminUsersPage() {
   const { user: currentAdmin } = useAuth();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "disabled">("all");
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
 
@@ -132,18 +133,27 @@ export default function AdminUsersPage() {
 
   const filtered = useMemo(
     () =>
-      users.filter((entry) =>
-        [entry.displayName || "", entry.email || "", entry.id, getRoleLabel(entry.role)].some((value) =>
+      users.filter((entry) => {
+        const matchesStatus =
+          statusFilter === "all" ||
+          (statusFilter === "active" && !entry.disabled) ||
+          (statusFilter === "disabled" && entry.disabled);
+
+        const matchesSearch = [entry.displayName || "", entry.email || "", entry.id, getRoleLabel(entry.role)].some((value) =>
           value.toLowerCase().includes(search.toLowerCase())
-        )
-      ),
-    [search, users]
+        );
+
+        return matchesStatus && matchesSearch;
+      }),
+    [search, statusFilter, users]
   );
 
   const roleCounts = roleOptions.map((role) => ({
     ...role,
     count: users.filter((entry) => (entry.role || "user") === role.value).length,
   }));
+  const activeUsers = users.filter((entry) => !entry.disabled).length;
+  const disabledUsers = users.filter((entry) => entry.disabled).length;
 
   return (
     <div className="space-y-6">
@@ -176,7 +186,7 @@ export default function AdminUsersPage() {
       </section>
 
       <Card>
-        <CardContent className="p-4 sm:p-5">
+        <CardContent className="grid gap-3 p-4 sm:p-5 lg:grid-cols-[1fr_auto]">
           <label className="flex min-h-12 items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 dark:border-slate-800 dark:bg-slate-950">
             <Search className="h-4 w-4 text-slate-400" />
             <input
@@ -187,6 +197,17 @@ export default function AdminUsersPage() {
               className="w-full bg-transparent text-sm outline-none"
             />
           </label>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant={statusFilter === "all" ? "default" : "outline"} onClick={() => setStatusFilter("all")}>
+              Tous ({users.length})
+            </Button>
+            <Button size="sm" variant={statusFilter === "active" ? "default" : "outline"} onClick={() => setStatusFilter("active")}>
+              Actifs ({activeUsers})
+            </Button>
+            <Button size="sm" variant={statusFilter === "disabled" ? "default" : "outline"} onClick={() => setStatusFilter("disabled")}>
+              Suspendus ({disabledUsers})
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -242,6 +263,7 @@ export default function AdminUsersPage() {
                             size="sm"
                             variant="outline"
                             disabled={savingId === entry.id}
+                            aria-label={entry.disabled ? "Réactiver l'utilisateur" : "Suspendre l'utilisateur"}
                             onClick={() => void setUserSuspension(entry, !entry.disabled)}
                             className={entry.disabled ? "text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20" : "text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20"}
                           >
