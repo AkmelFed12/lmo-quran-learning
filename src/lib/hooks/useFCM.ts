@@ -44,10 +44,14 @@ export function useFCM() {
       const messaging = getMessaging(app);
       const unsubscribe = onMessage(messaging, (payload) => {
         if (Notification.permission === "granted") {
-          new Notification(payload.notification?.title || "LMO", {
+          const notification = new Notification(payload.notification?.title || "LMO", {
             body: payload.notification?.body,
             icon: "/icon-192.png",
           });
+          notification.onclick = () => {
+            window.focus();
+            window.location.href = payload.data?.url || "/dashboard";
+          };
         }
       });
       return () => unsubscribe();

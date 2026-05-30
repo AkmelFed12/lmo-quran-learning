@@ -29,10 +29,14 @@ export default function NotificationManager() {
       const dueRevisions = sessions.filter((s: any) => s.nextReviewDate <= today);
 
       if (dueRevisions.length > 0 && Notification.permission === "granted") {
-        new Notification("LMO Quran - Rappel de révision", {
+        const notification = new Notification("LMO Quran - Rappel de révision", {
           body: `Vous avez ${dueRevisions.length} révision(s) à faire aujourd'hui.`,
-          icon: "/images/logo-lmo.svg",
+          icon: "/icon-192.png",
         });
+        notification.onclick = () => {
+          window.focus();
+          window.location.href = "/memorization";
+        };
       }
     };
 
