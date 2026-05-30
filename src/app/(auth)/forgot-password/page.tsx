@@ -17,7 +17,7 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     try {
       await sendPasswordResetEmail(auth, email);
-      toast.success("Email de réinitialisation envoyé.");
+      toast.success("E-mail de réinitialisation envoyé.");
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -31,11 +31,11 @@ export default function ForgotPasswordPage() {
         <h1 className="text-3xl font-heading font-bold text-center mb-4">Mot de passe oublié</h1>
         <form onSubmit={handleReset} className="space-y-5">
           <div>
-            <Label htmlFor="email">Adresse email</Label>
+            <Label htmlFor="email">Adresse e-mail</Label>
             <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Envoi..." : "Réinitialiser le mot de passe"}
+            {loading ? "Envoi…" : "Réinitialiser le mot de passe"}
           </Button>
         </form>
         <p className="mt-4 text-center text-sm">

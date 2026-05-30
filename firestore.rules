@@ -1,0 +1,139 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return signedIn() && (request.auth.token.email == "admin@gmail.com" || hasRole("admin"));
+    }
+
+    function hasRole(role) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
+    function isStaff() {
+      return isAdmin() || hasRole("editor") || hasRole("teacher") || hasRole("moderator");
+    }
+
+    function userRoleSafeOnCreate() {
+      return !("role" in request.resource.data) || request.resource.data.role == "user";
+    }
+
+    function userRoleUnchanged() {
+      return !("role" in request.resource.data) || request.resource.data.role == resource.data.role;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isStaff();
+      allow create: if isAdmin() || (isOwner(userId) && userRoleSafeOnCreate());
+      allow update: if isAdmin() || (isOwner(userId) && userRoleUnchanged());
+      allow delete: if isAdmin();
+
+      match /learningSessions/{sessionId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    match /progress/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    match /memorization/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    match /rankings/{day}/users/{userId} {
+      allow read: if true;
+      allow write: if isOwner(userId) || isAdmin();
+    }
+
+    match /dailyQuizzes/{quizId} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    match /contacts/{messageId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /adminQuality/{itemId} {
+      allow read, create, update: if isStaff();
+      allow delete: if isAdmin();
+    }
+
+    match /adminAuditLogs/{logId} {
+      allow read, create: if isStaff();
+      allow update, delete: if isAdmin();
+    }
+
+    match /adminRoles/{roleId} {
+      allow read: if isStaff();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /adminContents/{contentId} {
+      allow read: if isStaff() || (signedIn() && resource.data.status == "published");
+      allow create, update: if isAdmin() || hasRole("editor") || hasRole("teacher");
+      allow delete: if isAdmin();
+    }
+
+    match /adminContentHistory/{historyId} {
+      allow read, create: if isAdmin() || hasRole("editor") || hasRole("teacher");
+      allow update, delete: if isAdmin();
+    }
+
+    match /teacherClasses/{classId} {
+      allow read, create, update: if isAdmin() || hasRole("teacher");
+      allow delete: if isAdmin();
+    }
+
+    match /certificates/{certificateId} {
+      allow read: if signedIn() && (resource.data.userId == request.auth.uid || isStaff());
+      allow create, update: if signedIn() && (request.resource.data.userId == request.auth.uid || isStaff());
+      allow delete: if isAdmin();
+    }
+
+    match /testimonials/{testimonialId} {
+      allow read: if true;
+      allow create: if signedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    match /forum/{messageId} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+      allow update: if signedIn();
+      allow delete: if isAdmin();
+    }
+
+    match /plannings/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    match /challenges/{challengeId}/participants/{userId} {
+      allow read: if signedIn();
+      allow write: if isOwner(userId) || isAdmin();
+    }
+
+    match /stats/{document} {
+      allow read: if true;
+      allow create, update: if signedIn() || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
