@@ -4,11 +4,13 @@ export type AdminAuditAction =
   | "quality.note_updated"
   | "quality.checklist_exported"
   | "user.role_changed"
+  | "user.suspended"
+  | "user.restored"
   | "content.seeded"
   | "content.created"
   | "content.updated"
   | "content.status_changed"
-  | "content.deleted"
+  | "content.archived"
   | "content.exported"
   | "class.created"
   | "class.updated"
@@ -32,11 +34,13 @@ export const adminAuditActionLabels: Record<AdminAuditAction, string> = {
   "quality.note_updated": "Note mise à jour",
   "quality.checklist_exported": "Checklist exportée",
   "user.role_changed": "Rôle modifié",
+  "user.suspended": "Utilisateur suspendu",
+  "user.restored": "Utilisateur réactivé",
   "content.seeded": "Contenus initialisés",
   "content.created": "Contenu créé",
   "content.updated": "Contenu modifié",
   "content.status_changed": "Statut contenu modifié",
-  "content.deleted": "Contenu supprimé",
+  "content.archived": "Contenu archivé",
   "content.exported": "Contenu exporté",
   "class.created": "Classe créée",
   "class.updated": "Classe modifiée",

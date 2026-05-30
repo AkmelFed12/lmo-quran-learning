@@ -95,7 +95,7 @@ export default function MessageBubble({ post, onDelete }: PostProps) {
                 className="text-xs text-red-500 hover:underline flex items-center gap-1"
               >
                 <Trash2 className="w-3 h-3" />
-                Supprimer
+                Masquer
               </button>
             )}
             {post.replies && post.replies.length > 0 && (

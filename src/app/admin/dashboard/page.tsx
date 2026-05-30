@@ -1,8 +1,9 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
+import { addDoc, collection, doc, getDocs, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useAuth } from "@/lib/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -13,6 +14,7 @@ type AdminUserRow = {
   id: string;
   displayName?: string;
   email?: string;
+  disabled?: boolean;
 };
 
 const qualityQueue = [
@@ -47,6 +49,7 @@ const monetizationChecks = [
 ];
 
 export default function AdminDashboard() {
+  const { user: currentAdmin } = useAuth();
   const [users, setUsers] = useState<AdminUserRow[]>([]);
   const [stats, setStats] = useState({ totalUsers: 0, totalSessions: 0, totalQuizzes: 0, totalContacts: 0 });
   const [loading, setLoading] = useState(true);
@@ -85,6 +88,7 @@ export default function AdminDashboard() {
             id: item.id,
             displayName: typeof data.displayName === "string" ? data.displayName : undefined,
             email: typeof data.email === "string" ? data.email : undefined,
+            disabled: data.disabled === true,
           };
         })
       );
@@ -101,14 +105,33 @@ export default function AdminDashboard() {
     void fetchData();
   }, [fetchData]);
 
-  const deleteUser = async (userId: string) => {
-    if (!confirm("Supprimer cet utilisateur ?")) return;
+  const suspendUser = async (targetUser: AdminUserRow) => {
+    const label = targetUser.email || targetUser.displayName || targetUser.id;
+    if (!confirm(`Suspendre ${label} ? Le profil et les données seront conservés.`)) return;
     try {
-      await deleteDoc(doc(db, "users", userId));
-      toast.success("Utilisateur supprimé.");
+      await setDoc(
+        doc(db, "users", targetUser.id),
+        {
+          disabled: true,
+          disabledAt: serverTimestamp(),
+          disabledBy: currentAdmin?.email || "administrateur",
+        },
+        { merge: true }
+      );
+      await addDoc(collection(db, "adminAuditLogs"), {
+        action: "user.suspended",
+        targetType: "user",
+        targetId: targetUser.id,
+        summary: `${label} suspendu depuis le tableau de bord, sans suppression de données.`,
+        actorEmail: currentAdmin?.email || "administrateur",
+        actorId: currentAdmin?.uid || "unknown",
+        metadata: { disabled: true },
+        createdAt: serverTimestamp(),
+      });
+      toast.success("Utilisateur suspendu sans suppression.");
       await fetchData();
     } catch {
-      toast.error("Suppression impossible pour le moment.");
+      toast.error("Suspension impossible pour le moment.");
     }
   };
 
@@ -188,18 +211,19 @@ export default function AdminDashboard() {
                   <th className="py-2 text-left">UID</th>
                   <th className="py-2 text-left">Nom</th>
                   <th className="py-2 text-left">E-mail</th>
+                  <th className="py-2 text-left">Statut</th>
                   <th className="py-2 text-right">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {loading && (
                   <tr>
-                    <td colSpan={4} className="py-6 text-center text-slate-500">Chargement des utilisateurs...</td>
+                    <td colSpan={5} className="py-6 text-center text-slate-500">Chargement des utilisateurs...</td>
                   </tr>
                 )}
                 {!loading && users.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="py-6 text-center text-slate-500">Aucun utilisateur à afficher pour le moment.</td>
+                    <td colSpan={5} className="py-6 text-center text-slate-500">Aucun utilisateur à afficher pour le moment.</td>
                   </tr>
                 )}
                 {!loading && users.map((user) => (
@@ -207,9 +231,14 @@ export default function AdminDashboard() {
                     <td className="py-3 font-mono text-xs">{user.id.substring(0, 8)}…</td>
                     <td className="py-3">{user.displayName || "-"}</td>
                     <td className="py-3">{user.email}</td>
+                    <td className="py-3">
+                      <span className={`rounded-full px-3 py-1 text-xs font-bold ${user.disabled ? "bg-amber-100 text-amber-900 dark:bg-amber-900/30 dark:text-amber-100" : "bg-emerald-100 text-emerald-900 dark:bg-emerald-900/30 dark:text-emerald-100"}`}>
+                        {user.disabled ? "Suspendu" : "Actif"}
+                      </span>
+                    </td>
                     <td className="py-3 text-right">
-                      <Button size="sm" variant="outline" onClick={() => deleteUser(user.id)} className="text-red-500">
-                        Supprimer
+                      <Button size="sm" variant="outline" onClick={() => suspendUser(user)} className="text-amber-700" disabled={user.disabled}>
+                        {user.disabled ? "Déjà suspendu" : "Suspendre"}
                       </Button>
                     </td>
                   </tr>

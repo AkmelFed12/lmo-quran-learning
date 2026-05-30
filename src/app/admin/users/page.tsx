@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { addDoc, collection, deleteDoc, doc, getDocs, serverTimestamp, setDoc } from "firebase/firestore";
+import { addDoc, collection, doc, getDocs, serverTimestamp, setDoc } from "firebase/firestore";
 import { toast } from "sonner";
-import { ShieldCheck, Trash2, Search, UserCog, Loader2 } from "lucide-react";
+import { Ban, RotateCcw, ShieldCheck, Search, UserCog, Loader2 } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +15,7 @@ type AdminUser = {
   displayName?: string;
   email?: string;
   role?: UserRole;
+  disabled?: boolean;
   createdAt?: unknown;
 };
 
@@ -42,9 +43,14 @@ export default function AdminUsersPage() {
     void fetchUsers();
   }, []);
 
-  const writeAudit = async (targetId: string, summary: string, metadata?: Record<string, unknown>) => {
+  const writeAudit = async (
+    action: "user.role_changed" | "user.suspended" | "user.restored",
+    targetId: string,
+    summary: string,
+    metadata?: Record<string, unknown>
+  ) => {
     await addDoc(collection(db, "adminAuditLogs"), {
-      action: "user.role_changed",
+      action,
       targetType: "user",
       targetId,
       summary,
@@ -73,6 +79,7 @@ export default function AdminUsersPage() {
         { merge: true }
       );
       await writeAudit(
+        "user.role_changed",
         targetUser.id,
         `${targetUser.email || targetUser.displayName || targetUser.id} : ${getRoleLabel(previousRole)} vers ${getRoleLabel(nextRole)}.`,
         { previousRole, nextRole }
@@ -87,11 +94,40 @@ export default function AdminUsersPage() {
     }
   };
 
-  const deleteUser = async (userId: string) => {
-    if (!confirm("Supprimer cet utilisateur du profil Firestore ?")) return;
-    await deleteDoc(doc(db, "users", userId));
-    toast.success("Profil utilisateur supprimé.");
-    void fetchUsers();
+  const setUserSuspension = async (targetUser: AdminUser, disabled: boolean) => {
+    const label = targetUser.email || targetUser.displayName || targetUser.id;
+    const verb = disabled ? "suspendre" : "réactiver";
+    if (!confirm(`Confirmer : ${verb} ${label} ? Aucune donnée ne sera supprimée.`)) return;
+
+    setSavingId(targetUser.id);
+    setUsers((current) => current.map((entry) => (entry.id === targetUser.id ? { ...entry, disabled } : entry)));
+
+    try {
+      await setDoc(
+        doc(db, "users", targetUser.id),
+        {
+          disabled,
+          disabledAt: disabled ? serverTimestamp() : null,
+          disabledBy: disabled ? currentAdmin?.email || "administrateur" : null,
+          restoredAt: disabled ? null : serverTimestamp(),
+          restoredBy: disabled ? null : currentAdmin?.email || "administrateur",
+        },
+        { merge: true }
+      );
+      await writeAudit(
+        disabled ? "user.suspended" : "user.restored",
+        targetUser.id,
+        `${label} ${disabled ? "suspendu" : "réactivé"} sans suppression de données.`,
+        { disabled }
+      );
+      toast.success(disabled ? "Utilisateur suspendu sans suppression." : "Utilisateur réactivé.");
+    } catch (error) {
+      console.error(error);
+      setUsers((current) => current.map((entry) => (entry.id === targetUser.id ? { ...entry, disabled: targetUser.disabled } : entry)));
+      toast.error(disabled ? "Suspension impossible." : "Réactivation impossible.");
+    } finally {
+      setSavingId(null);
+    }
   };
 
   const filtered = useMemo(
@@ -167,14 +203,15 @@ export default function AdminUsersPage() {
                   <th className="p-4">E-mail</th>
                   <th className="p-4">UID</th>
                   <th className="p-4">Rôle</th>
+                  <th className="p-4">Statut</th>
                   <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={5} className="p-6 text-center text-slate-500">Chargement...</td></tr>
+                  <tr><td colSpan={6} className="p-6 text-center text-slate-500">Chargement...</td></tr>
                 ) : filtered.length === 0 ? (
-                  <tr><td colSpan={5} className="p-6 text-center text-slate-500">Aucun utilisateur trouvé.</td></tr>
+                  <tr><td colSpan={6} className="p-6 text-center text-slate-500">Aucun utilisateur trouvé.</td></tr>
                 ) : (
                   filtered.map((entry) => (
                     <tr key={entry.id} className="border-b border-slate-100 dark:border-slate-800">
@@ -193,16 +230,22 @@ export default function AdminUsersPage() {
                           ))}
                         </select>
                       </td>
+                      <td className="p-4">
+                        <span className={`rounded-full px-3 py-1 text-xs font-bold ${entry.disabled ? "bg-amber-100 text-amber-900 dark:bg-amber-900/30 dark:text-amber-100" : "bg-emerald-100 text-emerald-900 dark:bg-emerald-900/30 dark:text-emerald-100"}`}>
+                          {entry.disabled ? "Suspendu" : "Actif"}
+                        </span>
+                      </td>
                       <td className="p-4 text-right">
                         <div className="flex justify-end gap-2">
                           {entry.role && entry.role !== "user" && <ShieldCheck className="mt-2 h-4 w-4 text-emerald-600" />}
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => void deleteUser(entry.id)}
-                            className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            disabled={savingId === entry.id}
+                            onClick={() => void setUserSuspension(entry, !entry.disabled)}
+                            className={entry.disabled ? "text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20" : "text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20"}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            {entry.disabled ? <RotateCcw className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
                           </Button>
                         </div>
                       </td>

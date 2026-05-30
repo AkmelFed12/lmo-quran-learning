@@ -2,32 +2,12 @@
 import { useEffect, useState } from "react";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import { doc, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-
-// Import de l'instance app nécessaire à getMessaging()
-import { initializeApp, getApps, getApp } from "firebase/app";
-
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
+import { app, db } from "@/lib/firebase";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 export function useFCM() {
   const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<any>(null);
-
-  // Récupérer l'utilisateur courant (vous avez déjà useAuth, on l'importe)
-  // Pour simplifier, on va utiliser le localStorage pour l'uid (ou un contexte)
-  useEffect(() => {
-    // On peut réutiliser votre hook useAuth ici, mais pour ne pas créer de dépendance,
-    // on lit le localStorage. Dans la pratique, vous préférerez useAuth.
-    const uid = localStorage.getItem("uid");
-    if (uid) setUser({ uid });
-  }, []);
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!user || typeof window === "undefined") return;
@@ -37,8 +17,6 @@ export function useFCM() {
       if (permission !== "granted") return;
 
       try {
-        // Initialisation de messaging avec l'instance app
-        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
         const messaging = getMessaging(app);
 
         const currentToken = await getToken(messaging, {
@@ -57,14 +35,12 @@ export function useFCM() {
       }
     };
 
-    askPermission();
+    void askPermission();
   }, [user]);
 
-  // Écouter les messages au premier plan
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
       const messaging = getMessaging(app);
       const unsubscribe = onMessage(messaging, (payload) => {
         if (Notification.permission === "granted") {
@@ -75,8 +51,8 @@ export function useFCM() {
         }
       });
       return () => unsubscribe();
-    } catch (err) {
-      // ignore
+    } catch {
+      return undefined;
     }
   }, []);
 

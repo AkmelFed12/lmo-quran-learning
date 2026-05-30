@@ -36,7 +36,7 @@ service cloud.firestore {
       allow read: if isOwner(userId) || isStaff();
       allow create: if isAdmin() || (isOwner(userId) && userRoleSafeOnCreate());
       allow update: if isAdmin() || (isOwner(userId) && userRoleUnchanged());
-      allow delete: if isAdmin();
+      allow delete: if false;
 
       match /learningSessions/{sessionId} {
         allow read, write: if isOwner(userId) || isAdmin();
@@ -64,7 +64,8 @@ service cloud.firestore {
 
     match /contacts/{messageId} {
       allow create: if true;
-      allow read, update, delete: if isAdmin();
+      allow read, update: if isAdmin();
+      allow delete: if false;
     }
 
     match /adminQuality/{itemId} {
@@ -85,7 +86,7 @@ service cloud.firestore {
     match /adminContents/{contentId} {
       allow read: if isStaff() || (signedIn() && resource.data.status == "published");
       allow create, update: if isAdmin() || hasRole("editor") || hasRole("teacher");
-      allow delete: if isAdmin();
+      allow delete: if false;
     }
 
     match /adminContentHistory/{historyId} {
@@ -113,8 +114,13 @@ service cloud.firestore {
     match /forum/{messageId} {
       allow read: if signedIn();
       allow create: if signedIn();
-      allow update: if signedIn();
-      allow delete: if isAdmin();
+      allow update: if isAdmin()
+        || (signedIn()
+          && request.resource.data.diff(resource.data).changedKeys().hasOnly(["replies"]))
+        || (signedIn()
+          && resource.data.uid == request.auth.uid
+          && request.resource.data.diff(resource.data).changedKeys().hasOnly(["hidden", "hiddenAt", "hiddenBy"]));
+      allow delete: if false;
     }
 
     match /plannings/{userId} {
