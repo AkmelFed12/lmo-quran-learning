@@ -12,6 +12,7 @@ export type AdminContentItem = {
   level: "Débutant" | "Intermédiaire" | "Avancé" | "Tous niveaux";
   module: string;
   qualityNotes: string;
+  archived?: boolean;
   updatedAt?: unknown;
   updatedBy?: string;
 };

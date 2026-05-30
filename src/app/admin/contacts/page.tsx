@@ -1,13 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
 import {
-  collection, getDocs, deleteDoc, doc, query, orderBy,
+  collection, getDocs, doc, query, orderBy, serverTimestamp, setDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Trash2, Mail, Phone, User } from "lucide-react";
+import { Archive, Mail, Phone, User } from "lucide-react";
 
 export default function AdminContactsPage() {
   const [contacts, setContacts] = useState<any[]>([]);
@@ -16,17 +16,24 @@ export default function AdminContactsPage() {
   const fetchContacts = async () => {
     const q = query(collection(db, "contacts"), orderBy("createdAt", "desc"));
     const snap = await getDocs(q);
-    setContacts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    setContacts(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter((message: any) => message.archived !== true));
     setLoading(false);
   };
 
   useEffect(() => { fetchContacts(); }, []);
 
-  const deleteContact = async (id: string) => {
-    if (!confirm("Supprimer ce message ?")) return;
-    await deleteDoc(doc(db, "contacts", id));
-    toast.success("Message supprimé.");
-    fetchContacts();
+  const archiveContact = async (id: string) => {
+    if (!confirm("Archiver ce message ? Il ne sera pas supprimé.")) return;
+    await setDoc(
+      doc(db, "contacts", id),
+      {
+        archived: true,
+        archivedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+    toast.success("Message archivé sans suppression.");
+    void fetchContacts();
   };
 
   return (
@@ -57,10 +64,10 @@ export default function AdminContactsPage() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => deleteContact(msg.id)}
-                  className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 shrink-0"
+                  onClick={() => archiveContact(msg.id)}
+                  className="text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20 shrink-0"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Archive className="w-4 h-4" />
                 </Button>
               </div>
             </CardContent>

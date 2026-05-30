@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   addDoc,
   collection,
-  deleteDoc,
   doc,
   getDocs,
   orderBy,
@@ -13,7 +12,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { toast } from "sonner";
-import { AlertTriangle, CheckCircle2, Clock3, Eye, FileText, Loader2, Plus, Save, ShieldCheck, Trash2 } from "lucide-react";
+import { Archive, AlertTriangle, CheckCircle2, Clock3, Eye, FileText, Loader2, Plus, Save, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/firebase";
@@ -116,7 +115,7 @@ export default function AdminContentPage() {
       }
 
       const nextSnapshot = snapshot.empty ? await getDocs(query(collection(db, "adminContents"), orderBy("updatedAt", "desc"))) : snapshot;
-      setItems(nextSnapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as AdminContentItem)));
+      setItems(nextSnapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as AdminContentItem)).filter((item) => item.archived !== true));
 
       const historySnapshot = await getDocs(query(collection(db, "adminContentHistory"), orderBy("createdAt", "desc")));
       setHistory(historySnapshot.docs.slice(0, 12).map((entry) => ({ id: entry.id, ...entry.data() })));
@@ -213,10 +212,19 @@ export default function AdminContentPage() {
   };
 
   const removeContent = async (item: AdminContentItem) => {
-    if (!confirm("Supprimer ce contenu ?")) return;
-    await deleteDoc(doc(db, "adminContents", item.id));
-    await writeHistory(item.id, "content.deleted", `Suppression du contenu : ${item.title}.`);
-    toast.success("Contenu supprimé.");
+    if (!confirm("Archiver ce contenu ? Il restera conservé en base.")) return;
+    await setDoc(
+      doc(db, "adminContents", item.id),
+      {
+        archived: true,
+        archivedAt: serverTimestamp(),
+        archivedBy: user?.email || "administrateur",
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+    await writeHistory(item.id, "content.archived", `Archivage du contenu : ${item.title}.`);
+    toast.success("Contenu archivé sans suppression.");
     void loadContent();
   };
 
@@ -446,8 +454,8 @@ export default function AdminContentPage() {
                 ))}
                 <Button size="sm" variant="outline" onClick={() => setEditItem({ ...item })}>Modifier</Button>
                 <Button size="sm" variant="outline" onClick={() => setPreviewItem(item)}>Prévisualiser</Button>
-                <Button size="sm" variant="outline" onClick={() => void removeContent(item)} className="text-red-500">
-                  <Trash2 className="h-4 w-4" />
+                <Button size="sm" variant="outline" onClick={() => void removeContent(item)} className="text-amber-700">
+                  <Archive className="h-4 w-4" />
                 </Button>
               </div>
             </CardContent>

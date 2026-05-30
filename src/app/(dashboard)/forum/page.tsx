@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import {
   collection, addDoc, query, orderBy, getDocs,
-  serverTimestamp, deleteDoc, doc,
+  serverTimestamp, doc, updateDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -18,6 +18,7 @@ interface Post {
   uid: string;
   content: string;
   createdAt: any;
+  hidden?: boolean;
   replies?: any[];
 }
 
@@ -31,7 +32,7 @@ export default function ForumPage() {
   const fetchPosts = async () => {
     const q = query(collection(db, "forum"), orderBy("createdAt", "desc"));
     const snap = await getDocs(q);
-    setPosts(snap.docs.map(d => ({ id: d.id, ...d.data() } as Post)));
+    setPosts(snap.docs.map(d => ({ id: d.id, ...d.data() } as Post)).filter((post) => post.hidden !== true));
   };
 
   useEffect(() => { fetchPosts(); }, []);
@@ -52,6 +53,7 @@ export default function ForumPage() {
         uid: user.uid,
         content: newPost,
         createdAt: serverTimestamp(),
+        hidden: false,
         replies: [],
       });
       setNewPost("");
@@ -66,11 +68,15 @@ export default function ForumPage() {
   };
 
   const handleDelete = async (postId: string) => {
-    if (!confirm("Supprimer ce message ?")) return;
+    if (!confirm("Masquer ce message ? Il restera conservé en base.")) return;
     try {
-      await deleteDoc(doc(db, "forum", postId));
-      toast.success("Message supprimé.");
-      fetchPosts();
+      await updateDoc(doc(db, "forum", postId), {
+        hidden: true,
+        hiddenAt: serverTimestamp(),
+        hiddenBy: user?.uid || "unknown",
+      });
+      toast.success("Message masqué sans suppression.");
+      void fetchPosts();
     } catch (err: any) {
       console.error("Erreur suppression :", err);
       toast.error("Erreur lors de la suppression.");
