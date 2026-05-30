@@ -20,12 +20,15 @@ export function useRevisionReminder() {
         const due = sessions.filter((s: any) => s.nextReviewDate <= today);
 
         if (due.length > 0 && Notification.permission === "granted") {
-          // Notification locale (fonctionne même sans FCM)
-          new Notification("📖 Révision du jour", {
+          const notification = new Notification("Révision du jour", {
             body: `Vous avez ${due.length} révision(s) à faire aujourd'hui.`,
             icon: "/icon-192.png",
             tag: "lmo-revision",
           });
+          notification.onclick = () => {
+            window.focus();
+            window.location.href = "/memorization";
+          };
         }
       } catch (err) {
         console.warn("Erreur vérification révisions:", err);
