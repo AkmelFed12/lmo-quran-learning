@@ -12,8 +12,6 @@ import BadgeSystem from "@/components/dashboard/BadgeSystem";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, BookMarked, ClipboardCheck, Library, Medal } from "lucide-react";
-import AdSlot from "@/components/monetization/AdSlot";
-import { GOOGLE_ADSENSE_SLOTS } from "@/lib/monetization";
 
 const dashboardShortcuts = [
   {
@@ -60,8 +58,6 @@ export default function DashboardPage() {
           Votre espace reste volontairement simple : une session du jour, un parcours clair et quelques indicateurs utiles.
         </p>
       </header>
-
-      <AdSlot slot={GOOGLE_ADSENSE_SLOTS.dashboard} minHeight={96} />
 
       <DailySessionPlanner />
 

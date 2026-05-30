@@ -42,9 +42,9 @@ const learningChecks = [
   "Toute explication liée au Coran doit rester sobre et vérifiable.",
 ];
 
-const monetizationChecks = [
-  "Vérifier que les annonces ne couvrent jamais le texte coranique ni les boutons audio.",
-  "Contrôler régulièrement les revenus, impressions et alertes dans Google AdSense.",
+const supportChecks = [
+  "Garder le soutien volontaire clair, facultatif et séparé de la progression pédagogique.",
+  "Préserver une expérience sobre dans les espaces de lecture, de révision et de mémorisation.",
   "Garder le soutien Wave facultatif, clair et séparé de la progression pédagogique.",
 ];
 
@@ -269,11 +269,11 @@ export default function AdminDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <HeartHandshake className="h-5 w-5 text-emerald-600" />
-                Soutien et monétisation
+                Soutien du projet
               </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-2">
-              {monetizationChecks.map((item) => (
+              {supportChecks.map((item) => (
                 <div key={item} className="rounded-2xl border border-slate-100 p-3 text-sm leading-6 text-slate-600 dark:border-slate-800 dark:text-slate-300">
                   {item}
                 </div>

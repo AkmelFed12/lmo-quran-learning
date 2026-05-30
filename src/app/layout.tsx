@@ -5,7 +5,6 @@ import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { LocaleProvider } from "@/lib/hooks/useLocale";
 import { Toaster } from "sonner";
 import PwaUpdatePrompt from "@/components/shared/PwaUpdatePrompt";
-import AdSenseScript from "@/components/monetization/AdSenseScript";
 import CacheRecoveryScript from "@/components/shared/CacheRecoveryScript";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -105,7 +104,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fr" className={`${inter.variable} ${playfair.variable} ${amiri.variable}`}>
       <head>
         <CacheRecoveryScript />
-        <AdSenseScript />
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body suppressHydrationWarning className="min-h-screen bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors">

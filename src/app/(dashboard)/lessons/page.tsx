@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, BookOpen, CheckCircle2, Clock, GraduationCap, ShieldCheck, Target } from "lucide-react";
 import { lessonUnits } from "@/lib/learning-content";
-import AdSlot from "@/components/monetization/AdSlot";
-import { GOOGLE_ADSENSE_SLOTS } from "@/lib/monetization";
 
 export default function LessonsPage() {
   return (
@@ -35,8 +33,6 @@ export default function LessonsPage() {
           </div>
         </div>
       </header>
-
-      <AdSlot slot={GOOGLE_ADSENSE_SLOTS.lessons} minHeight={110} />
 
       <section className="card-premium p-5 sm:p-6">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
