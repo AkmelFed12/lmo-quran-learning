@@ -1,0 +1,35 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return signedIn() && request.auth.token.email == "admin@gmail.com";
+    }
+
+    match /users/{userId}/{allPaths=**} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    match /avatars/{userId} {
+      allow read: if true;
+      allow write: if isOwner(userId) || isAdmin();
+    }
+
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

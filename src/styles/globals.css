@@ -1,0 +1,127 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    @apply font-body antialiased bg-ivory text-slate-900 dark:bg-slate-950 dark:text-slate-100;
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+  }
+
+  *, *::before, *::after {
+    min-width: 0;
+  }
+
+  img, video, canvas, svg {
+    max-width: 100%;
+  }
+
+  .font-arabic {
+    font-family: 'Amiri', serif;
+  }
+
+  ::selection {
+    @apply bg-gold/30 text-slate-950 dark:text-white;
+  }
+}
+
+@layer components {
+  .card-premium {
+    @apply rounded-3xl border border-emerald-900/10 bg-white/90 shadow-sm shadow-emerald-950/5 transition-all duration-300 dark:border-white/10 dark:bg-slate-900/80;
+  }
+
+  .surface-calm {
+    @apply rounded-3xl border border-emerald-900/10 bg-ivory/80 shadow-sm shadow-emerald-950/5 backdrop-blur dark:border-white/10 dark:bg-slate-900/70;
+  }
+
+  .btn-emerald {
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-emerald-800 px-6 py-3 font-semibold text-white shadow-lg shadow-emerald-950/10 transition-all hover:-translate-y-0.5 hover:bg-emerald-900 dark:bg-emerald-600 dark:hover:bg-emerald-500;
+  }
+
+  .section-shell {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .arabic-reading {
+    font-family: 'Amiri', serif;
+    font-feature-settings: "liga" 1, "kern" 1;
+    line-height: 2.45;
+    letter-spacing: 0;
+  }
+
+  .touch-target {
+    @apply min-h-12 min-w-12;
+  }
+
+  .mobile-safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .table-scroll {
+    @apply w-full overflow-x-auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .skeleton-block {
+    @apply animate-pulse rounded-2xl bg-slate-200/70 dark:bg-slate-800;
+  }
+
+  .islamic-pattern {
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(201, 164, 75, 0.14) 1px, transparent 0),
+      linear-gradient(135deg, rgba(6, 78, 59, 0.05), transparent 42%);
+    background-size: 22px 22px, auto;
+  }
+
+  @media (max-width: 640px) {
+    .card-premium {
+      @apply rounded-2xl;
+    }
+
+    input, select, textarea, button {
+      @apply text-base;
+    }
+
+    .arabic-reading {
+      line-height: 2.15;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  @media (max-width: 430px) {
+    .section-shell {
+      @apply px-3;
+    }
+
+    .surface-calm,
+    .card-premium {
+      @apply shadow-none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  .low-data *, .low-data *::before, .low-data *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .low-data .islamic-pattern {
+    background-image: none;
+  }
+}
