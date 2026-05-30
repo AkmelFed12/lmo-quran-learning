@@ -6,7 +6,6 @@ const links = [
   { href: "/sources-methodology", label: "Sources et méthode" },
   { href: "/support", label: "Soutenir le projet" },
   { href: "/privacy", label: "Confidentialité" },
-  { href: "/cookies", label: "Cookies et annonces" },
   { href: "/terms", label: "Conditions" },
   { href: "/contact", label: "Contact" },
 ];

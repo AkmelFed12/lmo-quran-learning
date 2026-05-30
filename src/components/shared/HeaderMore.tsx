@@ -12,7 +12,6 @@ const links = [
   { href: "/sources-methodology", label: "Sources" },
   { href: "/support", label: "Soutenir" },
   { href: "/privacy", label: "Confidentialité" },
-  { href: "/cookies", label: "Cookies" },
   { href: "/terms", label: "Conditions" },
 ];
 

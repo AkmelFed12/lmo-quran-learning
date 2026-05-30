@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Confidentialité",
@@ -16,9 +15,8 @@ export default function PrivacyPage() {
             <p>LMO Quran Learning collecte uniquement les informations nécessaires au fonctionnement du compte : e-mail, nom affiché, progression, objectifs et préférences.</p>
             <p>Les données de progression servent à afficher le tableau de bord, les rappels, les badges et les statistiques personnelles.</p>
             <p>La plateforme utilise Firebase pour l'authentification, la base de données et le stockage. Les accès administrateur doivent rester strictement limités aux personnes autorisées.</p>
-            <p>Si la publicité est activée, LMO Quran Learning peut afficher des annonces afin de maintenir l'accès gratuit. Les régies publicitaires peuvent utiliser des cookies ou identifiants techniques pour mesurer l'affichage, limiter les abus et diffuser des annonces conformes à leurs règles.</p>
-            <p>Les annonces ne doivent jamais encourager l'utilisateur à cliquer, gêner la lecture du Coran ou remplacer l'objectif éducatif de la plateforme.</p>
-            <p>Les détails pratiques sont présentés dans la page <Link href="/cookies" className="font-semibold text-emerald-800 underline underline-offset-4 dark:text-gold">Cookies et annonces</Link>.</p>
+            <p>LMO Quran Learning garde un parcours d'apprentissage sobre. Les données ne sont pas utilisées pour vendre des emplacements commerciaux.</p>
+            <p>Le soutien du projet reste volontaire et séparé de la progression pédagogique.</p>
             <p>Vous pouvez demander la correction ou la suppression de vos données via la page Contact.</p>
           </div>
         </div>

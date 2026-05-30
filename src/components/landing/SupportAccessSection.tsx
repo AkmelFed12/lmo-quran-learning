@@ -4,7 +4,7 @@ import { ArrowRight, HeartHandshake, ShieldCheck } from "lucide-react";
 const notes = [
   "Accès gratuit pour apprendre à son rythme.",
   "Soutien facultatif, séparé de la progression.",
-  "Annonces placées avec prudence, jamais au coeur de la lecture.",
+  "Un parcours d'apprentissage sobre, sans distractions commerciales.",
 ];
 
 export default function SupportAccessSection() {
@@ -18,15 +18,12 @@ export default function SupportAccessSection() {
               Un projet ouvert, soutenu avec transparence.
             </h2>
             <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300">
-              LMO Quran Learning peut être soutenu par des contributions volontaires et des annonces discrètes. Le contenu éducatif reste prioritaire.
+              LMO Quran Learning peut être soutenu par des contributions volontaires. Le contenu éducatif reste prioritaire, clair et serein.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Link href="/support" className="btn-emerald w-full sm:w-auto">
                 Soutenir le projet
                 <HeartHandshake className="h-4 w-4" />
-              </Link>
-              <Link href="/cookies" className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-emerald-900/10 px-5 py-3 text-sm font-semibold text-emerald-900 transition hover:border-gold/40 dark:border-white/10 dark:text-emerald-100 sm:w-auto">
-                Cookies et annonces
               </Link>
             </div>
           </div>

@@ -80,7 +80,7 @@ export default function SupportPage() {
           <div>
             <h2 className="font-semibold text-slate-900 dark:text-white">Transparence</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-              Un soutien financier ne donne aucun avantage religieux, aucun raccourci pédagogique et aucune obligation de cliquer sur les publicités. L'apprentissage reste la priorité.
+              Un soutien financier ne donne aucun avantage religieux ni raccourci pédagogique. L'apprentissage reste la priorité.
             </p>
           </div>
         </section>
