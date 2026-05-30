@@ -2,54 +2,87 @@
 import { useAuth } from "@/lib/hooks/useAuth";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { BookOpen, Mic, Brain, Calendar, BarChart3, Book } from "lucide-react";
+import { ArrowRight, BarChart3, Book, BookOpen, Brain, Calendar, CheckCircle2 } from "lucide-react";
+import { useLocale } from "@/lib/hooks/useLocale";
 
 const quickLinks = [
-  { href: "/arabic", icon: Book, label: "Arabe", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" },
-  { href: "/quran", icon: BookOpen, label: "Coran", color: "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400" },
-  { href: "/memorization", icon: Brain, label: "Mémorisation", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
-  { href: "/planning", icon: Calendar, label: "Planning", color: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400" },
-  { href: "/dashboard", icon: BarChart3, label: "Tableau de bord", color: "bg-emerald-700 text-white" },
+  { href: "/arabic", icon: Book, label: "arabic", hint: "Lettres et voyelles" },
+  { href: "/quran", icon: BookOpen, label: "quran", hint: "Lecture accompagnée" },
+  { href: "/memorization", icon: Brain, label: "memorization", hint: "Révision courte" },
+  { href: "/planning", icon: Calendar, label: "planning", hint: "Routine claire" },
+  { href: "/dashboard", icon: BarChart3, label: "dashboard", hint: "Vue d'ensemble" },
 ];
+
+const container = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.08 } }
+};
+
+const item = {
+  hidden: { opacity: 0, y: 30, scale: 0.95 },
+  show: { opacity: 1, y: 0, scale: 1 }
+};
 
 export default function WelcomeHero() {
   const { user } = useAuth();
+  const { t } = useLocale();
   const firstName = user?.displayName?.split(" ")[0] || user?.email?.split("@")[0] || "Apprenant";
 
   return (
-    <section className="min-h-[90vh] flex flex-col justify-center bg-gradient-to-br from-white via-emerald-50/30 to-white dark:from-slate-950 dark:via-emerald-950/20 dark:to-slate-950">
-      <div className="container mx-auto px-4 py-20 text-center">
+    <section className="relative min-h-[90vh] overflow-hidden bg-ivory dark:bg-slate-950">
+      <div className="absolute inset-0 islamic-pattern opacity-60" />
+      <div className="section-shell relative py-20">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-10"
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="mx-auto max-w-4xl text-center"
         >
-          <h1 className="text-4xl md:text-6xl font-heading font-bold text-slate-800 dark:text-white mb-4">
-            Bienvenue, {firstName}
-          </h1>
-          <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-            Continuez votre apprentissage du Coran et de l'arabe avec LMO. Chaque jour est une nouvelle opportunité de progresser.
+          <p className="mx-auto inline-flex items-center gap-2 rounded-full border border-emerald-900/10 bg-white/80 px-4 py-2 text-sm font-semibold text-emerald-900 shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-emerald-100">
+            <CheckCircle2 className="h-4 w-4 text-gold" />
+            Session prête
           </p>
+          <h1 className="mt-6 text-4xl font-heading font-bold leading-tight text-slate-950 dark:text-white md:text-6xl">
+            {t("welcome")},{" "}
+            <span className="text-emerald-800 dark:text-gold">
+              {firstName}
+            </span>
+          </h1>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-slate-600 dark:text-slate-300 md:text-lg">
+            Assalamu alaykum. Reprenez une petite session, révisez un point fragile ou continuez votre lecture sans vous disperser.
+          </p>
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <Link href="/dashboard" className="btn-emerald w-full sm:w-auto">
+              Reprendre ma progression
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+            <Link href="/guided-path" className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-emerald-900/10 bg-white/75 px-6 py-3 text-sm font-semibold text-emerald-900 transition hover:border-gold/50 dark:border-white/10 dark:bg-white/5 dark:text-emerald-100 sm:w-auto">
+              Parcours du jour
+            </Link>
+          </div>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          className="grid grid-cols-2 md:grid-cols-6 gap-4 max-w-3xl mx-auto"
+          variants={container}
+          initial="hidden"
+          animate="show"
+          className="mx-auto mt-12 grid max-w-6xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5"
         >
           {quickLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="group flex flex-col items-center p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200"
-            >
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 ${link.color}`}>
-                <link.icon className="w-6 h-6" />
-              </div>
-              <span className="font-medium text-sm text-slate-700 dark:text-slate-200">{link.label}</span>
-            </Link>
+            <motion.div key={link.href} variants={item}>
+              <Link
+                href={link.href}
+                className="group relative flex h-full flex-col rounded-3xl border border-emerald-900/10 bg-white/85 p-5 text-left shadow-sm transition hover:-translate-y-1 hover:border-gold/60 hover:shadow-xl hover:shadow-emerald-950/10 dark:border-white/10 dark:bg-slate-900/75"
+              >
+                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-950 text-gold transition group-hover:bg-gold group-hover:text-emerald-950">
+                  <link.icon className="h-6 w-6" />
+                </div>
+                <span className="mt-4 font-semibold text-slate-950 dark:text-white">
+                  {t(link.label as any)}
+                </span>
+                <span className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{link.hint}</span>
+              </Link>
+            </motion.div>
           ))}
         </motion.div>
       </div>

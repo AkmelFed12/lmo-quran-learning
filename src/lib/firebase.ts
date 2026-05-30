@@ -12,6 +12,11 @@ const firebaseConfig = {
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: "select_account" });
 export const db = getFirestore(app);
+import { getStorage } from "firebase/storage";
+
+export const storage = getStorage(app);

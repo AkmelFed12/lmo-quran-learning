@@ -1,8 +1,10 @@
+import PlanningForm from "@/components/planning/PlanningForm";
+
 export default function PlanningPage() {
   return (
-    <div>
+    <div className="space-y-6">
       <h2 className="text-2xl font-bold">Planning</h2>
-      <p className="text-slate-500 dark:text-slate-400 mt-2">Module en cours de développement.</p>
+      <PlanningForm />
     </div>
   );
 }
