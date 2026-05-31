@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { RefreshCw, ShieldAlert } from "lucide-react";
 
 type GlobalErrorProps = {
@@ -11,23 +11,31 @@ type GlobalErrorProps = {
 async function clearApplicationCache() {
   if (typeof window === "undefined") return;
 
-  if ("caches" in window) {
-    const keys = await caches.keys();
-    await Promise.all(keys.map((key) => caches.delete(key)));
-  }
+  try {
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((key) => caches.delete(key)));
+    }
+  } catch {}
 
-  if ("serviceWorker" in navigator) {
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    await Promise.all(registrations.map((registration) => registration.update().catch(() => undefined)));
-  }
+  try {
+    if ("serviceWorker" in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((registration) => registration.update().catch(() => undefined)));
+    }
+  } catch {}
 }
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
+  const [reloading, setReloading] = useState(false);
+
   useEffect(() => {
     console.error("Erreur globale LMO Quran Learning :", error);
   }, [error]);
 
   const reloadCleanly = async () => {
+    if (reloading) return;
+    setReloading(true);
     await clearApplicationCache();
     window.location.reload();
   };
@@ -53,10 +61,11 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
               <button
                 type="button"
                 onClick={reloadCleanly}
+                disabled={reloading}
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-emerald-700 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-800"
               >
-                <RefreshCw className="h-4 w-4" />
-                Recharger proprement
+                <RefreshCw className={`h-4 w-4 ${reloading ? "animate-spin" : ""}`} />
+                {reloading ? "Rechargement..." : "Recharger proprement"}
               </button>
               <button
                 type="button"
