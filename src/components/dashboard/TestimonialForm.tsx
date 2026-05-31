@@ -12,18 +12,28 @@ export default function TestimonialForm() {
   const [loading, setLoading] = useState(false);
 
   const submitTestimonial = async () => {
-    if (!message.trim() || !user) return;
+    const trimmedMessage = message.trim();
+    if (!user) {
+      toast.error("Connectez-vous pour envoyer un témoignage.");
+      return;
+    }
+    if (trimmedMessage.length < 8) {
+      toast.error("Ajoutez quelques mots avant d'envoyer.");
+      return;
+    }
+    if (loading) return;
+
     setLoading(true);
     try {
       await addDoc(collection(db, "testimonials"), {
         uid: user.uid,
         displayName: user.displayName || "Anonyme",
-        message,
+        message: trimmedMessage,
         createdAt: new Date(),
       });
-      toast.success("Merci pour votre témoignage !");
+      toast.success("Merci pour votre témoignage.");
       setMessage("");
-    } catch (err) {
+    } catch {
       toast.error("Témoignage non envoyé. Vérifiez votre connexion puis réessayez.");
     } finally {
       setLoading(false);
@@ -40,7 +50,7 @@ export default function TestimonialForm() {
         placeholder="Votre témoignage…"
         className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 mb-3"
       />
-      <Button onClick={submitTestimonial} disabled={loading}>
+      <Button onClick={submitTestimonial} disabled={loading || message.trim().length < 8}>
         {loading ? "Envoi…" : "Envoyer mon témoignage"}
       </Button>
     </div>
