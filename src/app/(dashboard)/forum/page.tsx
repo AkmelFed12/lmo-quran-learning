@@ -184,7 +184,7 @@ export default function ForumPage() {
           <p className="text-center text-slate-500">Aucune discussion pour le moment. Soyez le premier à écrire !</p>
         )}
         {!loadError && posts.map((post) => (
-          <MessageBubble key={post.id} post={post} onDelete={handleDelete} />
+          <MessageBubble key={post.id} post={post} onDelete={handleDelete} onReplySaved={() => void fetchPosts()} />
         ))}
       </div>
     </div>

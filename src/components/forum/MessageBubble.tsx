@@ -37,9 +37,10 @@ interface PostProps {
     replies?: Reply[];
   };
   onDelete: (postId: string) => void;
+  onReplySaved?: () => void;
 }
 
-export default function MessageBubble({ post, onDelete }: PostProps) {
+export default function MessageBubble({ post, onDelete, onReplySaved }: PostProps) {
   const { user } = useAuth();
   const [showReply, setShowReply] = useState(false);
   const [replyContent, setReplyContent] = useState("");
@@ -63,6 +64,8 @@ export default function MessageBubble({ post, onDelete }: PostProps) {
       });
       setReplyContent("");
       setShowReply(false);
+      setExpanded(true);
+      onReplySaved?.();
       toast.success("Réponse ajoutée.");
     } catch {
       toast.error("Réponse non envoyée. Vérifiez votre connexion puis réessayez.");
@@ -95,6 +98,7 @@ export default function MessageBubble({ post, onDelete }: PostProps) {
           {/* Actions */}
           <div className="flex items-center gap-2 mt-3">
             <button
+              type="button"
               onClick={() => setShowReply(!showReply)}
               className="text-xs text-emerald-600 hover:underline flex items-center gap-1"
             >
@@ -103,6 +107,7 @@ export default function MessageBubble({ post, onDelete }: PostProps) {
             </button>
             {user?.uid === post.uid && (
               <button
+                type="button"
                 onClick={() => setConfirmHide(true)}
                 className="text-xs text-red-500 hover:underline flex items-center gap-1"
               >
@@ -112,6 +117,7 @@ export default function MessageBubble({ post, onDelete }: PostProps) {
             )}
             {post.replies && post.replies.length > 0 && (
               <button
+                type="button"
                 onClick={() => setExpanded(!expanded)}
                 className="text-xs text-slate-500 hover:underline flex items-center gap-1"
               >
@@ -152,7 +158,7 @@ export default function MessageBubble({ post, onDelete }: PostProps) {
                 placeholder="Votre réponse…"
                 className="flex-1 rounded-lg border px-3 py-2 text-sm"
               />
-              <Button size="sm" onClick={handleReply} disabled={sending}>
+              <Button size="sm" onClick={handleReply} disabled={sending || !replyContent.trim()} aria-label="Envoyer la réponse">
                 <Send className="w-4 h-4" />
               </Button>
             </div>
