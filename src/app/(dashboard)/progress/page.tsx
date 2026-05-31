@@ -6,7 +6,7 @@ import ProgressRing from "@/components/dashboard/ProgressRing";
 import ProgressChart from "@/components/dashboard/ProgressChart";
 import HeatmapChart from "@/components/dashboard/HeatmapChart";
 import BadgesPanel from "@/components/dashboard/BadgesPanel";
-import { ArrowRight, BookOpen, Brain, ClipboardCheck, Headphones, History } from "lucide-react";
+import { ArrowRight, BookOpen, Brain, ClipboardCheck, Flame, Headphones, History, Sparkles, Target, Trophy } from "lucide-react";
 
 const fallbackHistory = [
   { label: "Lecture", text: "Reprendre une sourate et écouter quelques versets.", icon: BookOpen },
@@ -19,10 +19,30 @@ function formatDate(value?: string) {
   return new Date(value).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
+function getProgressLevel(score: number) {
+  if (score >= 85) return { label: "Avancé", text: "Votre parcours est solide. Gardez un rythme régulier pour consolider.", icon: Trophy };
+  if (score >= 55) return { label: "Intermédiaire", text: "Vous avez une bonne base. Une courte session ciblée peut faire avancer le niveau.", icon: Sparkles };
+  if (score >= 25) return { label: "En construction", text: "Les fondations se mettent en place. Continuez avec des objectifs simples.", icon: Target };
+  return { label: "Départ guidé", text: "Commencez petit : une lettre, une écoute ou quelques versets suffisent.", icon: BookOpen };
+}
+
+function getNextAction(arabic: number, listening: number, memorization: number) {
+  if (arabic < 45) return { href: "/arabic", label: "Renforcer l'arabe", text: "Travaillez lettres, voyelles et assemblages courts." };
+  if (listening < 45) return { href: "/quran", label: "Écouter un passage", text: "Écoutez une sourate courte puis répétez calmement." };
+  if (memorization < 25) return { href: "/memorization", label: "Planifier une révision", text: "Choisissez une petite portion stable à revoir." };
+  return { href: "/daily-quiz", label: "Valider avec le quiz", text: "Testez vos acquis avec quelques questions." };
+}
+
 export default function ProgressPage() {
   const { data, loading } = useDashboardData();
 
   if (loading) return <Loading />;
+
+  const globalScore = Math.round((data.arabicProgress + data.listeningProgress + data.memorizationProgress) / 3);
+  const level = getProgressLevel(globalScore);
+  const LevelIcon = level.icon;
+  const nextAction = getNextAction(data.arabicProgress, data.listeningProgress, data.memorizationProgress);
+  const dailyGoalPercent = data.dailyGoalTarget > 0 ? Math.min(100, Math.round((data.dailyGoalCurrent / data.dailyGoalTarget) * 100)) : 0;
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -33,6 +53,49 @@ export default function ProgressPage() {
           Suivez ce qui a été lu, écouté, mémorisé et révisé. Les données restent liées à votre compte.
         </p>
       </header>
+
+      <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="rounded-[2rem] border border-emerald-900/10 bg-gradient-to-br from-emerald-800 via-emerald-700 to-amber-600 p-6 text-white shadow-xl shadow-emerald-950/20">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-bold uppercase tracking-[0.22em] text-emerald-50/80">Niveau global</p>
+              <h2 className="mt-2 text-4xl font-heading font-bold">{level.label}</h2>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-emerald-50/90">{level.text}</p>
+            </div>
+            <div className="grid h-24 w-24 shrink-0 place-items-center rounded-[2rem] bg-white/15 backdrop-blur">
+              <LevelIcon className="h-10 w-10" />
+            </div>
+          </div>
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl bg-white/12 p-4">
+              <p className="text-3xl font-bold">{globalScore}%</p>
+              <p className="mt-1 text-xs text-emerald-50/75">score moyen</p>
+            </div>
+            <div className="rounded-2xl bg-white/12 p-4">
+              <p className="flex items-center gap-2 text-3xl font-bold"><Flame className="h-6 w-6" /> {data.streak}</p>
+              <p className="mt-1 text-xs text-emerald-50/75">jour(s) de série</p>
+            </div>
+            <div className="rounded-2xl bg-white/12 p-4">
+              <p className="text-3xl font-bold">{dailyGoalPercent}%</p>
+              <p className="mt-1 text-xs text-emerald-50/75">objectif du jour</p>
+            </div>
+          </div>
+        </div>
+
+        <Link
+          href={nextAction.href}
+          className="group rounded-[2rem] border border-emerald-900/10 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-gold/50 hover:shadow-xl dark:border-white/10 dark:bg-slate-900"
+        >
+          <Target className="h-7 w-7 text-emerald-700 dark:text-gold" />
+          <p className="mt-5 text-sm font-bold uppercase tracking-[0.2em] text-gold">Prochaine action</p>
+          <h2 className="mt-2 text-2xl font-heading font-bold text-slate-950 dark:text-white">{nextAction.label}</h2>
+          <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">{nextAction.text}</p>
+          <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-emerald-800 dark:text-gold">
+            Continuer
+            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+          </span>
+        </Link>
+      </section>
 
       <section className="grid gap-4 md:grid-cols-3">
         <div className="card-premium p-5">
