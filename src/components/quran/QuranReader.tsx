@@ -122,7 +122,7 @@ export default function QuranReader({ surahId }: { surahId: number }) {
   useEffect(() => {
     if (!user) return;
 
-    const loadCloudPreferences = async () => {
+    const loadAccountPreferences = async () => {
       try {
         const snapshot = await getDoc(doc(db, "progress", user.uid));
         const prefs = snapshot.exists() ? snapshot.data().quran?.preferences : null;
@@ -134,11 +134,11 @@ export default function QuranReader({ surahId }: { surahId: number }) {
         if (prefs.arabicSize) setArabicSize(Number(prefs.arabicSize));
         if (typeof prefs.nightReader === "boolean") setNightReader(prefs.nightReader);
       } catch {
-        // Les préférences locales prennent le relais si le cloud est indisponible.
+        // Les préférences locales prennent le relais si la synchronisation n'est pas disponible.
       }
     };
 
-    void loadCloudPreferences();
+    void loadAccountPreferences();
   }, [user]);
 
   useEffect(() => {
@@ -169,24 +169,24 @@ export default function QuranReader({ surahId }: { surahId: number }) {
 
     if (!user) return;
 
-    const loadCloudReaderState = async () => {
+    const loadAccountReaderState = async () => {
       try {
         const snapshot = await getDoc(doc(db, "progress", user.uid));
         const quran = snapshot.exists() ? snapshot.data().quran : null;
-        const cloudBookmarks = quran?.bookmarks?.[String(surahId)];
-        const cloudNotes = quran?.notes?.[String(surahId)];
-        if (Array.isArray(cloudBookmarks)) {
-          setBookmarkedAyahs(cloudBookmarks.map(Number).sort((a, b) => a - b));
+        const savedBookmarks = quran?.bookmarks?.[String(surahId)];
+        const savedNotes = quran?.notes?.[String(surahId)];
+        if (Array.isArray(savedBookmarks)) {
+          setBookmarkedAyahs(savedBookmarks.map(Number).sort((a, b) => a - b));
         }
-        if (cloudNotes && typeof cloudNotes === "object") {
-          setAyahNotes(cloudNotes);
+        if (savedNotes && typeof savedNotes === "object") {
+          setAyahNotes(savedNotes);
         }
       } catch {
         // L'état local reste utilisable hors connexion.
       }
     };
 
-    void loadCloudReaderState();
+    void loadAccountReaderState();
   }, [surahId, user]);
 
   useEffect(() => {

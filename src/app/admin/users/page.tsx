@@ -8,6 +8,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { requestConfirmation } from "@/lib/confirm-action";
 import { getRoleLabel, roleOptions, type UserRole } from "@/lib/admin-roles";
 
 type AdminUser = {
@@ -98,7 +99,6 @@ export default function AdminUsersPage() {
   const setUserSuspension = async (targetUser: AdminUser, disabled: boolean) => {
     const label = targetUser.email || targetUser.displayName || targetUser.id;
     const verb = disabled ? "suspendre" : "réactiver";
-    if (!confirm(`Confirmer : ${verb} ${label} ? Aucune donnée ne sera supprimée.`)) return;
 
     setSavingId(targetUser.id);
     setUsers((current) => current.map((entry) => (entry.id === targetUser.id ? { ...entry, disabled } : entry)));
@@ -129,6 +129,16 @@ export default function AdminUsersPage() {
     } finally {
       setSavingId(null);
     }
+  };
+
+  const requestUserSuspension = (targetUser: AdminUser, disabled: boolean) => {
+    const label = targetUser.email || targetUser.displayName || targetUser.id;
+    requestConfirmation({
+      title: `${disabled ? "Suspendre" : "Réactiver"} cet utilisateur ?`,
+      description: `${label} : aucune donnée ne sera supprimée.`,
+      confirmLabel: disabled ? "Suspendre" : "Réactiver",
+      onConfirm: () => setUserSuspension(targetUser, disabled),
+    });
   };
 
   const filtered = useMemo(
@@ -264,7 +274,7 @@ export default function AdminUsersPage() {
                             variant="outline"
                             disabled={savingId === entry.id}
                             aria-label={entry.disabled ? "Réactiver l'utilisateur" : "Suspendre l'utilisateur"}
-                            onClick={() => void setUserSuspension(entry, !entry.disabled)}
+                            onClick={() => requestUserSuspension(entry, !entry.disabled)}
                             className={entry.disabled ? "text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20" : "text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20"}
                           >
                             {entry.disabled ? <RotateCcw className="h-4 w-4" /> : <Ban className="h-4 w-4" />}

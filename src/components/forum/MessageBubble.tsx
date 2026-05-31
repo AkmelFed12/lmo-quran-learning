@@ -35,6 +35,7 @@ export default function MessageBubble({ post, onDelete }: PostProps) {
   const [replyContent, setReplyContent] = useState("");
   const [sending, setSending] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [confirmHide, setConfirmHide] = useState(false);
 
   const handleReply = async () => {
     if (!replyContent.trim() || !user) return;
@@ -91,7 +92,7 @@ export default function MessageBubble({ post, onDelete }: PostProps) {
             </button>
             {user?.uid === post.uid && (
               <button
-                onClick={() => onDelete(post.id)}
+                onClick={() => setConfirmHide(true)}
                 className="text-xs text-red-500 hover:underline flex items-center gap-1"
               >
                 <Trash2 className="w-3 h-3" />
@@ -108,6 +109,27 @@ export default function MessageBubble({ post, onDelete }: PostProps) {
               </button>
             )}
           </div>
+
+          {confirmHide && (
+            <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-100">
+              <p className="font-semibold">Masquer ce message ?</p>
+              <p className="mt-1 text-xs">Il ne sera plus visible dans le forum, mais il restera conservé en base.</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" onClick={() => setConfirmHide(false)}>
+                  Annuler
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setConfirmHide(false);
+                    onDelete(post.id);
+                  }}
+                >
+                  Confirmer
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Formulaire de réponse */}
           {showReply && (

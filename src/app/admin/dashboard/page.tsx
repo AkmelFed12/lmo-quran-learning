@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { AlertTriangle, ArrowRight, BookOpen, ClipboardCheck, FileWarning, HeartHandshake, RefreshCw, ShieldCheck, TrendingUp, Users } from "lucide-react";
 import { QUESTION_BANK_SIZE } from "@/lib/question-bank";
+import { requestConfirmation } from "@/lib/confirm-action";
 
 type AdminUserRow = {
   id: string;
@@ -107,7 +108,6 @@ export default function AdminDashboard() {
 
   const suspendUser = async (targetUser: AdminUserRow) => {
     const label = targetUser.email || targetUser.displayName || targetUser.id;
-    if (!confirm(`Suspendre ${label} ? Le profil et les données seront conservés.`)) return;
     try {
       await setDoc(
         doc(db, "users", targetUser.id),
@@ -133,6 +133,16 @@ export default function AdminDashboard() {
     } catch {
       toast.error("Suspension impossible pour le moment.");
     }
+  };
+
+  const requestSuspendUser = (targetUser: AdminUserRow) => {
+    const label = targetUser.email || targetUser.displayName || targetUser.id;
+    requestConfirmation({
+      title: "Suspendre cet utilisateur ?",
+      description: `${label} : le profil et les données seront conservés.`,
+      confirmLabel: "Suspendre",
+      onConfirm: () => suspendUser(targetUser),
+    });
   };
 
   const statCards = [
@@ -237,7 +247,7 @@ export default function AdminDashboard() {
                       </span>
                     </td>
                     <td className="py-3 text-right">
-                      <Button size="sm" variant="outline" onClick={() => suspendUser(user)} className="text-amber-700" disabled={user.disabled}>
+                      <Button size="sm" variant="outline" onClick={() => requestSuspendUser(user)} className="text-amber-700" disabled={user.disabled}>
                         {user.disabled ? "Déjà suspendu" : "Suspendre"}
                       </Button>
                     </td>

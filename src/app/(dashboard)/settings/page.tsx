@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { CheckCircle2, Cloud, Moon, Sun, Globe, Bell, BellOff, Save, ShieldCheck, WifiOff } from "lucide-react";
+import { CheckCircle2, RefreshCw, Moon, Sun, Globe, Bell, BellOff, Save, ShieldCheck, WifiOff } from "lucide-react";
 
 export default function SettingsPage() {
   // Toujours appeler les hooks en premier, sans condition
@@ -109,7 +109,7 @@ export default function SettingsPage() {
             </p>
           </div>
           <div className="rounded-2xl border border-sky-100 bg-sky-50 p-4 dark:border-sky-900/50 dark:bg-sky-950/20">
-            <Cloud className="h-5 w-5 text-sky-700 dark:text-sky-300" />
+            <RefreshCw className="h-5 w-5 text-sky-700 dark:text-sky-300" />
             <p className="mt-3 font-semibold text-slate-950 dark:text-white">Synchronisation prête</p>
             <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">Vos données sont liées à votre compte.</p>
           </div>

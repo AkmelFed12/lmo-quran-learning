@@ -68,7 +68,6 @@ export default function ForumPage() {
   };
 
   const handleDelete = async (postId: string) => {
-    if (!confirm("Masquer ce message ? Il restera conservé en base.")) return;
     try {
       await updateDoc(doc(db, "forum", postId), {
         hidden: true,

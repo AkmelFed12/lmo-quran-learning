@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { requestConfirmation } from "@/lib/confirm-action";
 import {
   contentStatusClasses,
   contentStatusLabels,
@@ -212,7 +213,6 @@ export default function AdminContentPage() {
   };
 
   const removeContent = async (item: AdminContentItem) => {
-    if (!confirm("Archiver ce contenu ? Il restera conservé en base.")) return;
     await setDoc(
       doc(db, "adminContents", item.id),
       {
@@ -226,6 +226,15 @@ export default function AdminContentPage() {
     await writeHistory(item.id, "content.archived", `Archivage du contenu : ${item.title}.`);
     toast.success("Contenu archivé sans suppression.");
     void loadContent();
+  };
+
+  const requestArchiveContent = (item: AdminContentItem) => {
+    requestConfirmation({
+      title: "Archiver ce contenu ?",
+      description: "Il restera conservé en base et pourra être retrouvé dans l'historique.",
+      confirmLabel: "Archiver",
+      onConfirm: () => removeContent(item),
+    });
   };
 
   const statusCount = (status: AdminContentStatus) => items.filter((item) => item.status === status).length;
@@ -454,7 +463,7 @@ export default function AdminContentPage() {
                 ))}
                 <Button size="sm" variant="outline" onClick={() => setEditItem({ ...item })}>Modifier</Button>
                 <Button size="sm" variant="outline" onClick={() => setPreviewItem(item)}>Prévisualiser</Button>
-                <Button size="sm" variant="outline" onClick={() => void removeContent(item)} className="text-amber-700">
+                <Button size="sm" variant="outline" onClick={() => requestArchiveContent(item)} className="text-amber-700">
                   <Archive className="h-4 w-4" />
                 </Button>
               </div>
