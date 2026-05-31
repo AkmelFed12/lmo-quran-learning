@@ -3,13 +3,18 @@ import { useEffect, useState } from "react";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+};
+
 export default function InstallPWA() {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
-    const handler = (e: any) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
+    const handler = (event: Event) => {
+      event.preventDefault();
+      setDeferredPrompt(event as BeforeInstallPromptEvent);
     };
     window.addEventListener("beforeinstallprompt", handler);
     return () => window.removeEventListener("beforeinstallprompt", handler);
@@ -17,9 +22,9 @@ export default function InstallPWA() {
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const result = await deferredPrompt.userChoice;
-    if (result.outcome === "accepted") {
+    await deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+    if (choice.outcome === "accepted") {
       setDeferredPrompt(null);
     }
   };
@@ -27,7 +32,7 @@ export default function InstallPWA() {
   if (!deferredPrompt) return null;
 
   return (
-    <Button size="sm" variant="outline" onClick={handleInstall} className="fixed bottom-24 right-4 z-50 md:bottom-6 md:right-6 shadow-lg">
+    <Button size="sm" variant="outline" onClick={handleInstall} className="fixed bottom-24 right-4 z-50 md:bottom-6 md:right-6 shadow-lg" aria-label="Installer l'application">
       <Download className="w-4 h-4 mr-2" /> Installer
     </Button>
   );
