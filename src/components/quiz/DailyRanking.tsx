@@ -4,6 +4,7 @@ import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, Medal } from "lucide-react";
+import { toast } from "sonner";
 
 interface RankingUser {
   uid: string;
@@ -19,15 +20,23 @@ export default function DailyRanking() {
     const ref = collection(db, "rankings", today, "users");
     const q = query(ref, orderBy("score", "desc"));
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const list = snapshot.docs.map((d) => ({
-        uid: d.id,
-        ...d.data(),
-      })) as RankingUser[];
-      setUsers(list);
-    }, (error) => {
-      console.error("Erreur classement:", error);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const list = snapshot.docs.map((entry) => {
+          const data = entry.data();
+          return {
+            uid: entry.id,
+            displayName: typeof data.displayName === "string" ? data.displayName : "Apprenant",
+            score: Number(data.score || 0),
+          };
+        });
+        setUsers(list);
+      },
+      () => {
+        toast.error("Classement indisponible pour le moment.");
+      }
+    );
 
     return () => unsubscribe();
   }, []);

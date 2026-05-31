@@ -17,6 +17,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { User, Award, BookOpen, Target, Camera, Key } from "lucide-react";
 import Image from "next/image";
+import { getFirebaseAuthMessage } from "@/lib/auth-errors";
+
+const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -61,6 +64,15 @@ export default function ProfilePage() {
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Choisissez une image au format PNG, JPG ou WebP.");
+      return;
+    }
+    if (file.size > MAX_AVATAR_SIZE) {
+      toast.error("Image trop lourde. Choisissez une photo de moins de 2 Mo.");
+      return;
+    }
+
     setUploading(true);
     try {
       const storageRef = ref(storage, `avatars/${user.uid}`);
@@ -69,7 +81,7 @@ export default function ProfilePage() {
       setPhotoURL(url);
       await updateDoc(doc(db, "users", user.uid), { photoURL: url });
       toast.success("Photo mise à jour !");
-    } catch (err) {
+    } catch {
       toast.error("Photo non envoyée. Vérifiez votre connexion puis réessayez.");
     } finally {
       setUploading(false);
@@ -78,12 +90,19 @@ export default function ProfilePage() {
 
   const saveProfile = async () => {
     if (!user) return;
-    await setDoc(doc(db, "users", user.uid), {
-      displayName,
-      dailyGoal,
-      updatedAt: new Date().toISOString(),
-    }, { merge: true });
-    toast.success("Profil mis à jour.");
+    const normalizedGoal = Math.min(100, Math.max(1, Number(dailyGoal) || 10));
+    setDailyGoal(normalizedGoal);
+
+    try {
+      await setDoc(doc(db, "users", user.uid), {
+        displayName: displayName.trim(),
+        dailyGoal: normalizedGoal,
+        updatedAt: new Date().toISOString(),
+      }, { merge: true });
+      toast.success("Profil mis à jour.");
+    } catch {
+      toast.error("Profil conservé sur l'appareil. Réessayez quand la connexion sera stable.");
+    }
   };
 
   const handleChangePassword = async () => {
@@ -91,16 +110,25 @@ export default function ProfilePage() {
       toast.error("Veuillez remplir tous les champs.");
       return;
     }
+    if (!user.email) {
+      toast.error("Ce compte ne permet pas le changement de mot de passe depuis cette page.");
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.error("Choisissez un mot de passe d'au moins 6 caractères.");
+      return;
+    }
+
     setChangingPassword(true);
     try {
-      const credential = EmailAuthProvider.credential(user.email!, currentPassword);
+      const credential = EmailAuthProvider.credential(user.email, currentPassword);
       await reauthenticateWithCredential(user, credential);
       await updatePassword(user, newPassword);
       toast.success("Mot de passe modifié !");
       setCurrentPassword("");
       setNewPassword("");
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (error: unknown) {
+      toast.error(getFirebaseAuthMessage(error, "Mot de passe non modifié pour le moment."));
     } finally {
       setChangingPassword(false);
     }
@@ -150,6 +178,8 @@ export default function ProfilePage() {
                 </div>
               )}
               <button
+                type="button"
+                aria-label="Changer la photo de profil"
                 onClick={() => fileInputRef.current?.click()}
                 className="absolute bottom-0 right-0 w-7 h-7 bg-emerald-600 rounded-full flex items-center justify-center text-white shadow hover:bg-emerald-700"
                 disabled={uploading}

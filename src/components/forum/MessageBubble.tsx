@@ -9,12 +9,22 @@ import { doc, updateDoc, arrayUnion } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { toast } from "sonner";
 
+type FirestoreDate = {
+  toDate?: () => Date;
+};
+
+function toDisplayDate(value: FirestoreDate | Date) {
+  if (value instanceof Date) return value;
+  if (typeof value.toDate === "function") return value.toDate();
+  return null;
+}
+
 interface Reply {
   id: string;
   author: string;
   uid: string;
   content: string;
-  createdAt: any;
+  createdAt: FirestoreDate | Date;
 }
 
 interface PostProps {
@@ -23,7 +33,7 @@ interface PostProps {
     author: string;
     uid: string;
     content: string;
-    createdAt: any;
+    createdAt: FirestoreDate | Date;
     replies?: Reply[];
   };
   onDelete: (postId: string) => void;
@@ -61,8 +71,9 @@ export default function MessageBubble({ post, onDelete }: PostProps) {
     }
   };
 
-  const timeAgo = post.createdAt?.toDate
-    ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true, locale: fr })
+  const createdDate = toDisplayDate(post.createdAt);
+  const timeAgo = createdDate
+    ? formatDistanceToNow(createdDate, { addSuffix: true, locale: fr })
     : "";
 
   return (

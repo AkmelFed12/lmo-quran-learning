@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { getFirebaseAuthMessage } from "@/lib/auth-errors";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -14,12 +15,18 @@ export default function ForgotPasswordPage() {
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    const normalizedEmail = email.trim();
+    if (!normalizedEmail) {
+      toast.error("Indiquez votre adresse e-mail.");
+      return;
+    }
+
     setLoading(true);
     try {
-      await sendPasswordResetEmail(auth, email);
-      toast.success("E-mail de réinitialisation envoyé.");
-    } catch (error: any) {
-      toast.error(error.message);
+      await sendPasswordResetEmail(auth, normalizedEmail);
+      toast.success("Si un compte existe avec cette adresse, un lien de réinitialisation vient d'être envoyé.");
+    } catch (error: unknown) {
+      toast.error(getFirebaseAuthMessage(error, "Réinitialisation impossible pour le moment."));
     } finally {
       setLoading(false);
     }
