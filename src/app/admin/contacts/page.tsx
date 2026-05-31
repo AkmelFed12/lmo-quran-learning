@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Archive, Mail, Phone, User } from "lucide-react";
+import { requestConfirmation } from "@/lib/confirm-action";
 
 export default function AdminContactsPage() {
   const [contacts, setContacts] = useState<any[]>([]);
@@ -23,7 +24,6 @@ export default function AdminContactsPage() {
   useEffect(() => { fetchContacts(); }, []);
 
   const archiveContact = async (id: string) => {
-    if (!confirm("Archiver ce message ? Il ne sera pas supprimé.")) return;
     await setDoc(
       doc(db, "contacts", id),
       {
@@ -34,6 +34,15 @@ export default function AdminContactsPage() {
     );
     toast.success("Message archivé sans suppression.");
     void fetchContacts();
+  };
+
+  const requestArchiveContact = (id: string) => {
+    requestConfirmation({
+      title: "Archiver ce message ?",
+      description: "Il ne sera plus affiché dans la liste active, sans être supprimé.",
+      confirmLabel: "Archiver",
+      onConfirm: () => archiveContact(id),
+    });
   };
 
   return (
@@ -64,7 +73,7 @@ export default function AdminContactsPage() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => archiveContact(msg.id)}
+                  onClick={() => requestArchiveContact(msg.id)}
                   className="text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20 shrink-0"
                 >
                   <Archive className="w-4 h-4" />

@@ -45,6 +45,7 @@ export default function LearningGaps() {
   const [activeCategory, setActiveCategory] = useState<QuestionCategory | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [confirmReset, setConfirmReset] = useState(false);
 
   const refreshData = () => {
     const weaknesses = getWeakCategories(1);
@@ -100,13 +101,13 @@ export default function LearningGaps() {
   };
 
   const resetHistory = () => {
-    if (!confirm("Effacer l'historique local des questions et des lacunes ?")) return;
     clearQuestionHistory();
     setWeakCategories([]);
     setRecentMistakes([]);
     setActiveCategory(null);
     setAnswers({});
     setCurrentIndex(0);
+    setConfirmReset(false);
     toast.success("Historique local réinitialisé.");
   };
 
@@ -127,12 +128,27 @@ export default function LearningGaps() {
               <AlertCircle className="h-5 w-5 text-amber-600" />
               Points à renforcer
             </CardTitle>
-            <Button variant="outline" size="sm" onClick={resetHistory}>
+            <Button variant="outline" size="sm" onClick={() => setConfirmReset(true)}>
               <Trash2 className="mr-2 h-4 w-4" />
               Effacer
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
+            {confirmReset && (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-100">
+                <p className="font-semibold">Réinitialiser l'historique local ?</p>
+                <p className="mt-1 text-xs">Cela retire seulement les traces de révision stockées sur cet appareil. Le compte et les scores enregistrés restent conservés.</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setConfirmReset(false)}>
+                    Annuler
+                  </Button>
+                  <Button size="sm" onClick={resetHistory}>
+                    Confirmer
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {weakCategories.length === 0 ? (
               <div className="rounded-2xl bg-ivory p-4 text-sm leading-6 text-slate-600 dark:bg-white/[0.04] dark:text-slate-300">
                 Faites quelques exercices ou tests pour obtenir un bilan personnalisé.
