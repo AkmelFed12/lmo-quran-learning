@@ -33,11 +33,13 @@ const searchData = [
   { type: "faq", label: "Foire aux questions", href: "/faq" },
   { type: "page", label: "À propos", href: "/about" },
   { type: "page", label: "Contact", href: "/contact" },
-];
+] as const;
+
+type SearchItem = (typeof searchData)[number];
 
 export default function GlobalSearch() {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<SearchItem[]>([]);
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -84,6 +86,8 @@ export default function GlobalSearch() {
         />
         {query && (
           <button
+            type="button"
+            aria-label="Effacer la recherche"
             onClick={() => {
               setQuery("");
               setOpen(false);

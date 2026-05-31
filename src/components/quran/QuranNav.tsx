@@ -11,6 +11,7 @@ interface Surah {
 export default function QuranNav({ activeSurah, onSelect }: { activeSurah?: number; onSelect: (id: number) => void }) {
   const [surahs, setSurahs] = useState<Surah[]>([]);
   const [search, setSearch] = useState("");
+  const [loadingError, setLoadingError] = useState(false);
 
   useEffect(() => {
     fetch("https://api.alquran.cloud/v1/surah")
@@ -19,9 +20,10 @@ export default function QuranNav({ activeSurah, onSelect }: { activeSurah?: numb
         // L'API renvoie un tableau dans data.data
         if (data?.data && Array.isArray(data.data)) {
           setSurahs(data.data);
+          setLoadingError(false);
         }
       })
-      .catch(console.error);
+      .catch(() => setLoadingError(true));
   }, []);
 
   const filtered = surahs.filter(s =>
@@ -33,14 +35,21 @@ export default function QuranNav({ activeSurah, onSelect }: { activeSurah?: numb
     <div className="card-premium p-4">
       <input
         type="text"
+        aria-label="Rechercher une sourate"
         placeholder="Rechercher une sourate…"
         className="mb-4 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-emerald-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
+      {loadingError && (
+        <p className="mb-3 rounded-2xl bg-amber-50 p-3 text-xs text-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+          Liste des sourates indisponible pour le moment. Réessayez dans quelques instants.
+        </p>
+      )}
       <div className="space-y-1 max-h-[60vh] overflow-y-auto">
         {filtered.map(s => (
           <button
+            type="button"
             key={s.number}
             onClick={() => onSelect(s.number)}
             className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition ${

@@ -83,9 +83,8 @@ export default function SettingsPage() {
         { merge: true }
       );
       toast.success("Paramètres sauvegardés.");
-    } catch (err: any) {
+    } catch {
       toast.error("Paramètres conservés sur l'appareil. Réessayez quand la connexion sera stable.");
-      console.error(err);
     }
   };
 

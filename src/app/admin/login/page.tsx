@@ -22,7 +22,7 @@ export default function AdminLoginPage() {
       await signInWithEmailAndPassword(auth, email, password);
       toast.success("Connexion administrateur réussie.");
       router.push("/admin/dashboard");
-    } catch (err: any) {
+    } catch {
       toast.error("Identifiants incorrects.");
     } finally {
       setLoading(false);

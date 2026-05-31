@@ -32,6 +32,13 @@ interface Ayah {
   audio?: string;
 }
 
+interface SurahInfo {
+  name?: string;
+  englishName?: string;
+  revelationType?: string;
+  numberOfAyahs?: number;
+}
+
 type DisplayMode = "arabic" | "translation" | "transliteration" | "all";
 const READER_PREFS_KEY = "lmo_quran_reader_preferences";
 
@@ -71,7 +78,7 @@ function notesKey(surahId: number) {
 export default function QuranReader({ surahId }: { surahId: number }) {
   const { user } = useAuth();
   const [ayahs, setAyahs] = useState<Ayah[]>([]);
-  const [surahInfo, setSurahInfo] = useState<any>(null);
+  const [surahInfo, setSurahInfo] = useState<SurahInfo | null>(null);
   const [basmala, setBasmala] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [reciter, setReciter] = useState("ar.alafasy");
@@ -216,7 +223,7 @@ export default function QuranReader({ surahId }: { surahId: number }) {
 
         const arAyahs = arData?.data?.ayahs;
         if (!arAyahs || !Array.isArray(arAyahs)) {
-          console.error("Format arabe inattendu :", arData);
+          toast.error("Lecture indisponible pour cette sourate. Réessayez dans quelques instants.");
           return;
         }
 
@@ -247,8 +254,7 @@ export default function QuranReader({ surahId }: { surahId: number }) {
             audio: audioAyahs[index]?.audio || "",
           }))
         );
-      } catch (err) {
-        console.error("Erreur chargement sourate :", err);
+      } catch {
         toast.error("Impossible de charger cette sourate pour le moment.");
       } finally {
         setLoading(false);
@@ -331,8 +337,8 @@ export default function QuranReader({ surahId }: { surahId: number }) {
         },
         { merge: true }
       );
-    } catch (error) {
-      console.error("Erreur de sauvegarde de l'écoute :", error);
+    } catch {
+      // La lecture ne doit pas être interrompue si la progression ne se synchronise pas immédiatement.
     }
   };
 

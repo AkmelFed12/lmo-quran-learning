@@ -6,10 +6,17 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { Play, Pause, Loader } from "lucide-react";
+import { toast } from "sonner";
+
+type FlashcardSession = {
+  surahNumber: number;
+  fromAyah: number;
+  toAyah: number;
+};
 
 export default function FlashcardReview() {
   const { user } = useAuth();
-  const [flashcards, setFlashcards] = useState<any[]>([]);
+  const [flashcards, setFlashcards] = useState<FlashcardSession[]>([]);
   const [index, setIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -21,8 +28,16 @@ export default function FlashcardReview() {
     (async () => {
       const snap = await getDoc(doc(db, "memorization", user.uid));
       if (snap.exists()) {
-        const sessions = snap.data().sessions || [];
-        setFlashcards(sessions);
+        const sessions: unknown[] = Array.isArray(snap.data().sessions) ? snap.data().sessions : [];
+        setFlashcards(
+          sessions.filter((session): session is FlashcardSession =>
+            typeof session === "object" &&
+            session !== null &&
+            typeof (session as Partial<FlashcardSession>).surahNumber === "number" &&
+            typeof (session as Partial<FlashcardSession>).fromAyah === "number" &&
+            typeof (session as Partial<FlashcardSession>).toAyah === "number"
+          )
+        );
       }
     })();
   }, [user]);
@@ -38,8 +53,8 @@ export default function FlashcardReview() {
         setAudioUrl(data.data.audio);
         return data.data.audio;
       }
-    } catch (err) {
-      console.error("Erreur audio", err);
+    } catch {
+      toast.error("Audio indisponible pour cette carte.");
     } finally {
       setLoadingAudio(false);
     }
@@ -52,7 +67,7 @@ export default function FlashcardReview() {
     const url = await fetchAudio(current.surahNumber, current.fromAyah);
     if (url) {
       const audio = new Audio(url);
-      audio.play();
+      audio.play().catch(() => toast.error("Lecture audio impossible pour le moment."));
       setPlaying(true);
       audio.onended = () => setPlaying(false);
     }
@@ -74,6 +89,8 @@ export default function FlashcardReview() {
               Versets {current.fromAyah} – {current.toAyah}
             </p>
             <button
+              type="button"
+              aria-label="Écouter le début de cette carte"
               onClick={(e) => {
                 e.stopPropagation();
                 playAudio();

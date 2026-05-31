@@ -21,9 +21,5 @@ export function getFirebaseAuthMessage(error: unknown, fallback = "Connexion imp
     return authErrorMessages[error.code];
   }
 
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-
   return fallback;
 }

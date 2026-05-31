@@ -12,14 +12,26 @@ import { toast } from "sonner";
 import { Send, MessageCircle, Eye, EyeOff } from "lucide-react";
 import MessageBubble from "@/components/forum/MessageBubble";
 
+type FirestoreDate = {
+  toDate?: () => Date;
+};
+
+interface Reply {
+  id: string;
+  author: string;
+  uid: string;
+  content: string;
+  createdAt: FirestoreDate | Date;
+}
+
 interface Post {
   id: string;
   author: string;
   uid: string;
   content: string;
-  createdAt: any;
+  createdAt: FirestoreDate | Date;
   hidden?: boolean;
-  replies?: any[];
+  replies?: Reply[];
 }
 
 export default function ForumPage() {
