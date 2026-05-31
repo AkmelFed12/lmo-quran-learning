@@ -67,6 +67,9 @@ export default function AppError({ error, reset }: AppErrorProps) {
             Tableau de bord
           </Link>
         </div>
+        <p className="mt-5 text-xs leading-6 text-slate-400 dark:text-slate-500">
+          Si le problème revient après le rechargement, ouvrez les paramètres puis relancez l'application depuis la dernière version.
+        </p>
       </section>
     </main>
   );
