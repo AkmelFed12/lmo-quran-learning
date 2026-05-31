@@ -171,7 +171,7 @@ export default function ProfilePage() {
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="relative w-20 h-20 shrink-0">
               {photoURL ? (
-                <Image src={photoURL} alt="Photo de profil" width={80} height={80} className="rounded-full object-cover" />
+                <Image src={photoURL} alt="Photo" width={80} height={80} className="rounded-full object-cover" />
               ) : (
                 <div className="w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
                   <User className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
@@ -195,8 +195,7 @@ export default function ProfilePage() {
           </div>
           <div>
             <label className="text-sm font-medium">Nom affiché</label>
-              <input
-              id="displayName"
+            <input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2"
@@ -204,11 +203,8 @@ export default function ProfilePage() {
           </div>
           <div>
             <label className="text-sm font-medium">Objectif quotidien (versets)</label>
-              <input
-              id="dailyGoal"
+            <input
               type="number"
-              min={1}
-              max={100}
               value={dailyGoal}
               onChange={(e) => setDailyGoal(+e.target.value)}
               className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2"
@@ -223,7 +219,6 @@ export default function ProfilePage() {
         <CardHeader><CardTitle>Modifier le mot de passe</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <input
-            aria-label="Mot de passe actuel"
             type="password"
             placeholder="Mot de passe actuel"
             value={currentPassword}
@@ -231,7 +226,6 @@ export default function ProfilePage() {
             className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2"
           />
           <input
-            aria-label="Nouveau mot de passe"
             type="password"
             placeholder="Nouveau mot de passe"
             value={newPassword}

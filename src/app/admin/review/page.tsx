@@ -82,7 +82,7 @@ export default function AdminReviewPage() {
       </section>
 
       {loading ? (
-        <Card><CardContent className="p-6 text-sm text-slate-500">Chargement…</CardContent></Card>
+        <Card><CardContent className="p-6 text-sm text-slate-500">Chargement...</CardContent></Card>
       ) : total === 0 ? (
         <Card><CardContent className="p-6 text-sm text-slate-500">Aucun élément à relire pour le moment.</CardContent></Card>
       ) : (

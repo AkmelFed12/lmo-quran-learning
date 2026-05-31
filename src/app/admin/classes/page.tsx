@@ -128,19 +128,19 @@ export default function AdminClassesPage() {
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="grid gap-3 md:grid-cols-3">
-            <input aria-label="Nom de la classe" value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} placeholder="Nom de la classe" className="rounded-xl border px-3 py-2 dark:border-slate-800 dark:bg-slate-950" />
-            <select aria-label="Enseignant de la classe" value={draft.teacherId} onChange={(event) => setDraft({ ...draft, teacherId: event.target.value })} className="rounded-xl border px-3 py-2 dark:border-slate-800 dark:bg-slate-950">
+            <input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} placeholder="Nom de la classe" className="rounded-xl border px-3 py-2 dark:border-slate-800 dark:bg-slate-950" />
+            <select value={draft.teacherId} onChange={(event) => setDraft({ ...draft, teacherId: event.target.value })} className="rounded-xl border px-3 py-2 dark:border-slate-800 dark:bg-slate-950">
               <option value="">Choisir un enseignant</option>
               {teachers.map((teacher) => <option key={teacher.id} value={teacher.id}>{teacher.displayName || teacher.email || teacher.id}</option>)}
             </select>
-            <select aria-label="Niveau de la classe" value={draft.level} onChange={(event) => setDraft({ ...draft, level: event.target.value as TeacherClass["level"] })} className="rounded-xl border px-3 py-2 dark:border-slate-800 dark:bg-slate-950">
+            <select value={draft.level} onChange={(event) => setDraft({ ...draft, level: event.target.value as TeacherClass["level"] })} className="rounded-xl border px-3 py-2 dark:border-slate-800 dark:bg-slate-950">
               <option value="Débutant">Débutant</option>
               <option value="Intermédiaire">Intermédiaire</option>
               <option value="Avancé">Avancé</option>
               <option value="Mixte">Mixte</option>
             </select>
           </div>
-          <textarea aria-label="Objectif pédagogique de la classe" value={draft.objective} onChange={(event) => setDraft({ ...draft, objective: event.target.value })} placeholder="Objectif pédagogique" rows={3} className="rounded-xl border px-3 py-2 dark:border-slate-800 dark:bg-slate-950" />
+          <textarea value={draft.objective} onChange={(event) => setDraft({ ...draft, objective: event.target.value })} placeholder="Objectif pédagogique" rows={3} className="rounded-xl border px-3 py-2 dark:border-slate-800 dark:bg-slate-950" />
           <div className="rounded-2xl border border-slate-200 p-4 dark:border-slate-800">
             <p className="mb-3 text-sm font-semibold">Élèves</p>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -165,7 +165,7 @@ export default function AdminClassesPage() {
 
       <div className="grid gap-4">
         {loading ? (
-          <Card><CardContent className="p-6 text-sm text-slate-500"><Loader2 className="mr-2 inline h-4 w-4 animate-spin" /> Chargement…</CardContent></Card>
+          <Card><CardContent className="p-6 text-sm text-slate-500"><Loader2 className="mr-2 inline h-4 w-4 animate-spin" /> Chargement...</CardContent></Card>
         ) : classes.length === 0 ? (
           <Card><CardContent className="p-6 text-sm text-slate-500">Aucune classe créée.</CardContent></Card>
         ) : (
