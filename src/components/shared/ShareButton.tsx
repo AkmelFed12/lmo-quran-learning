@@ -11,6 +11,7 @@ interface ShareButtonProps {
 
 export default function ShareButton({ title, text, url }: ShareButtonProps) {
   const handleShare = async () => {
+    if (typeof window === "undefined") return;
     const shareData = {
       title,
       text,
@@ -21,19 +22,22 @@ export default function ShareButton({ title, text, url }: ShareButtonProps) {
       try {
         await navigator.share(shareData);
       } catch (err) {
-        if ((err as any).name !== "AbortError") {
+        if (err instanceof DOMException && err.name !== "AbortError") {
           toast.error("Impossible de partager.");
         }
       }
     } else {
-      // Fallback : copier dans le presse-papier
-      await navigator.clipboard.writeText(`${title} - ${text} ${shareData.url}`);
-      toast.success("Lien copié dans le presse-papier !");
+      try {
+        await navigator.clipboard.writeText(`${title} - ${text} ${shareData.url}`);
+        toast.success("Lien copié dans le presse-papier.");
+      } catch {
+        toast.error("Copie impossible sur ce navigateur.");
+      }
     }
   };
 
   return (
-    <Button variant="outline" size="sm" onClick={handleShare}>
+    <Button variant="outline" size="sm" onClick={handleShare} aria-label="Partager cette page">
       <Share2 className="w-4 h-4 mr-2" /> Partager
     </Button>
   );
