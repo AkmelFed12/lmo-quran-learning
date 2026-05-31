@@ -1,15 +1,25 @@
 import { useEffect, useState } from "react";
 
-const cache = new Map<string, any>();
+type QuranApiResponse = {
+  data?: {
+    ayahs?: Array<{
+      numberInSurah: number;
+      text: string;
+    }>;
+  };
+};
+
+const cache = new Map<string, QuranApiResponse>();
 
 export function useQuranData(surahId: number) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<QuranApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const key = `surah-${surahId}`;
-    if (cache.has(key)) {
-      setData(cache.get(key));
+    const cached = cache.get(key);
+    if (cached) {
+      setData(cached);
       setLoading(false);
       return;
     }

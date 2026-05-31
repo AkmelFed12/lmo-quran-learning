@@ -3,14 +3,24 @@ import { useEffect, useState } from "react";
 import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
+type Testimonial = {
+  message: string;
+  displayName: string;
+};
+
 export default function Testimonials() {
-  const [testimonials, setTestimonials] = useState<any[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
 
   useEffect(() => {
     (async () => {
       const q = query(collection(db, "testimonials"), orderBy("createdAt", "desc"), limit(6));
       const snap = await getDocs(q);
-      const list = snap.docs.map((doc) => doc.data());
+      const list = snap.docs
+        .map((entry) => entry.data())
+        .filter((item): item is Testimonial =>
+          typeof item.message === "string" &&
+          typeof item.displayName === "string"
+        );
       if (list.length === 0) {
         setTestimonials([
           { message: "Une plateforme magnifique, très motivante.", displayName: "Umm Inaya wa Abdul Wahhab" },

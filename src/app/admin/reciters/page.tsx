@@ -63,10 +63,10 @@ export default function AdminRecitersPage() {
         <Card>
           <CardHeader><CardTitle>{edit.id ? "Modifier" : "Nouveau"} récitateur</CardTitle></CardHeader>
           <CardContent className="space-y-3">
-            <input placeholder="Nom" value={edit.name} onChange={e => setEdit({...edit, name: e.target.value})} className="w-full rounded-lg border px-3 py-2" />
-            <input placeholder="Style" value={edit.style} onChange={e => setEdit({...edit, style: e.target.value})} className="w-full rounded-lg border px-3 py-2" />
-            <input placeholder="Identifiant API, ex. ar.alafasy" value={edit.providerId || ""} onChange={e => setEdit({...edit, providerId: e.target.value})} className="w-full rounded-lg border px-3 py-2" />
-            <select value={edit.status || "à vérifier"} onChange={e => setEdit({...edit, status: e.target.value as Reciter["status"]})} className="w-full rounded-lg border px-3 py-2">
+            <input aria-label="Nom du récitateur" placeholder="Nom" value={edit.name} onChange={e => setEdit({...edit, name: e.target.value})} className="w-full rounded-lg border px-3 py-2" />
+            <input aria-label="Style de récitation" placeholder="Style" value={edit.style} onChange={e => setEdit({...edit, style: e.target.value})} className="w-full rounded-lg border px-3 py-2" />
+            <input aria-label="Identifiant API du récitateur" placeholder="Identifiant API, ex. ar.alafasy" value={edit.providerId || ""} onChange={e => setEdit({...edit, providerId: e.target.value})} className="w-full rounded-lg border px-3 py-2" />
+            <select aria-label="Statut du récitateur" value={edit.status || "à vérifier"} onChange={e => setEdit({...edit, status: e.target.value as Reciter["status"]})} className="w-full rounded-lg border px-3 py-2">
               <option value="actif">Actif</option>
               <option value="à vérifier">À vérifier</option>
             </select>
@@ -92,7 +92,7 @@ export default function AdminRecitersPage() {
               </div>
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" onClick={() => setEdit({...r})}>Modifier</Button>
-                <Button size="sm" variant="outline" onClick={() => handleDelete(r.id)} className="text-red-500"><Trash2 className="w-4 h-4" /></Button>
+                <Button size="sm" variant="outline" onClick={() => handleDelete(r.id)} className="text-red-500" aria-label={`Retirer ${r.name}`}><Trash2 className="w-4 h-4" /></Button>
               </div>
             </CardContent>
           </Card>

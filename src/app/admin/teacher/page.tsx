@@ -97,7 +97,7 @@ export default function AdminTeacherPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {loading ? (
-              <p className="text-sm text-slate-500">Chargement...</p>
+              <p className="text-sm text-slate-500">Chargement…</p>
             ) : learners.length === 0 ? (
               <p className="text-sm text-slate-500">Aucun élève trouvé.</p>
             ) : (

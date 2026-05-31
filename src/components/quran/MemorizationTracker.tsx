@@ -54,11 +54,14 @@ export default function MemorizationTracker() {
 
   const addSession = async () => {
     if (!user) return;
+    const normalizedSurah = Math.min(114, Math.max(1, Number(surahInput) || 1));
+    const normalizedFrom = Math.max(1, Number(fromAyah) || 1);
+    const normalizedTo = Math.max(normalizedFrom, Number(toAyah) || normalizedFrom);
     const newSession: MemorizationSession = {
       id: Date.now().toString(),
-      surahNumber: surahInput,
-      fromAyah,
-      toAyah,
+      surahNumber: normalizedSurah,
+      fromAyah: normalizedFrom,
+      toAyah: normalizedTo,
       easeFactor: 2.5,
       interval: 0,
       nextReviewDate: new Date().toISOString().split("T")[0],
@@ -69,6 +72,9 @@ export default function MemorizationTracker() {
     const updated = [...sessions, newSession];
     await setDoc(doc(db, "memorization", user.uid), { sessions: updated }, { merge: true });
     setSessions(updated);
+    setSurahInput(normalizedSurah);
+    setFromAyah(normalizedFrom);
+    setToAyah(normalizedTo);
     toast.success("Session ajoutée !");
   };
 
@@ -174,9 +180,9 @@ export default function MemorizationTracker() {
           <CardTitle>Ajouter une session</CardTitle>
         </CardHeader>
         <CardContent className="flex gap-2 flex-wrap">
-          <input type="number" min={1} max={114} value={surahInput} onChange={e => setSurahInput(+e.target.value)} className="w-20 rounded border px-2" placeholder="Sourate" />
-          <input type="number" min={1} value={fromAyah} onChange={e => setFromAyah(+e.target.value)} className="w-20 rounded border px-2" placeholder="De" />
-          <input type="number" min={1} value={toAyah} onChange={e => setToAyah(+e.target.value)} className="w-20 rounded border px-2" placeholder="À" />
+          <input type="number" min={1} max={114} aria-label="Numéro de sourate" value={surahInput} onChange={e => setSurahInput(+e.target.value)} className="w-20 rounded border px-2" placeholder="Sourate" />
+          <input type="number" min={1} aria-label="Premier verset" value={fromAyah} onChange={e => setFromAyah(+e.target.value)} className="w-20 rounded border px-2" placeholder="De" />
+          <input type="number" min={1} aria-label="Dernier verset" value={toAyah} onChange={e => setToAyah(+e.target.value)} className="w-20 rounded border px-2" placeholder="À" />
           <Button onClick={addSession}><ArrowRight className="w-4 h-4 mr-1" /> Ajouter</Button>
         </CardContent>
       </Card>
@@ -190,7 +196,7 @@ export default function MemorizationTracker() {
                 <span>Sourate {session.surahNumber}, versets {session.fromAyah}-{session.toAyah}</span>
                 <div className="flex gap-1">
                   {[1, 2, 3, 4, 5].map(q => (
-                    <button key={q} onClick={() => reviewSession(index, q)} className="h-9 w-9 rounded-full bg-emerald-100 text-xs font-bold text-emerald-950 hover:bg-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-100">{q}</button>
+                    <button key={q} type="button" aria-label={`Noter la révision ${q} sur 5`} onClick={() => reviewSession(index, q)} className="h-9 w-9 rounded-full bg-emerald-100 text-xs font-bold text-emerald-950 hover:bg-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-100">{q}</button>
                   ))}
                 </div>
               </div>

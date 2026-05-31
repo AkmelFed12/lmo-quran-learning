@@ -240,7 +240,7 @@ export default function AdminUsersPage() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={6} className="p-6 text-center text-slate-500">Chargement...</td></tr>
+                  <tr><td colSpan={6} className="p-6 text-center text-slate-500">Chargement…</td></tr>
                 ) : filtered.length === 0 ? (
                   <tr><td colSpan={6} className="p-6 text-center text-slate-500">Aucun utilisateur trouvé.</td></tr>
                 ) : (
