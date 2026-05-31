@@ -5,6 +5,9 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "./useAuth";
 
 type RevisionSession = {
+  surahNumber?: number;
+  fromAyah?: number;
+  toAyah?: number;
   nextReviewDate?: string;
 };
 
@@ -28,11 +31,17 @@ export function useRevisionReminder() {
         if (alreadyShown) return;
 
         const sessions = Array.isArray(snap.data().sessions) ? snap.data().sessions as RevisionSession[] : [];
-        const due = sessions.filter((session) => session.nextReviewDate && session.nextReviewDate <= today);
+        const due = sessions
+          .filter((session) => session.nextReviewDate && session.nextReviewDate <= today)
+          .sort((first, second) => first.nextReviewDate!.localeCompare(second.nextReviewDate!));
 
         if (due.length > 0) {
+          const first = due[0];
+          const firstLabel = first.surahNumber
+            ? `Commencez par la sourate ${first.surahNumber}, versets ${first.fromAyah ?? "-"}-${first.toAyah ?? "-"}.`
+            : "Ouvrez votre planning de mémorisation pour commencer.";
           const notification = new Notification("Révision du jour", {
-            body: `Vous avez ${due.length} révision(s) à faire aujourd'hui.`,
+            body: `Vous avez ${due.length} révision(s) à faire aujourd'hui. ${firstLabel}`,
             icon: "/icon-192.png",
             tag: "lmo-revision",
           });
