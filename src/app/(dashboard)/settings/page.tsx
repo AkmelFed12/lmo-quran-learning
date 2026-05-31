@@ -19,6 +19,7 @@ export default function SettingsPage() {
   const [mounted, setMounted] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [lowDataMode, setLowDataMode] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   // Attendre que le composant soit monté côté client avant de lire des APIs navigateur
   useEffect(() => {
@@ -27,7 +28,7 @@ export default function SettingsPage() {
       if (typeof window !== "undefined" && "Notification" in window) {
         setNotificationsEnabled(Notification.permission === "granted");
       }
-      const savedLowDataMode = window.localStorage.getItem("lmo_low_data_mode") === "true";
+      const savedLowDataMode = typeof window !== "undefined" && window.localStorage.getItem("lmo_low_data_mode") === "true";
       setLowDataMode(savedLowDataMode);
       document.documentElement.classList.toggle("low-data", savedLowDataMode);
     } catch {}
@@ -36,7 +37,9 @@ export default function SettingsPage() {
   const toggleLowDataMode = () => {
     const next = !lowDataMode;
     setLowDataMode(next);
-    window.localStorage.setItem("lmo_low_data_mode", String(next));
+    try {
+      window.localStorage.setItem("lmo_low_data_mode", String(next));
+    } catch {}
     document.documentElement.classList.toggle("low-data", next);
     toast.success(next ? "Mode faible connexion activé." : "Mode faible connexion désactivé.");
   };
@@ -54,21 +57,23 @@ export default function SettingsPage() {
           setNotificationsEnabled(true);
           toast.success("Notifications activées.");
         } else {
-        toast.error("Notifications refusées. Vous pouvez les autoriser depuis les réglages du navigateur.");
-      }
-    } catch (err) {
+          toast.error("Notifications refusées. Vous pouvez les autoriser depuis les réglages du navigateur.");
+        }
+      } catch {
         toast.error("Impossible d'ouvrir la demande de permission pour le moment.");
       }
     } else {
-      toast.info("Gérez les notifications dans les paramètres de votre navigateur.");
+      toast.info("Les notifications sont activées. Pour les couper, utilisez les réglages de votre navigateur.");
     }
   };
 
   const saveSettings = async () => {
+    if (saving) return;
     if (!user) {
       toast.error("Vous devez être connecté.");
       return;
     }
+    setSaving(true);
     try {
       await setDoc(
         doc(db, "users", user.uid),
@@ -85,6 +90,8 @@ export default function SettingsPage() {
       toast.success("Paramètres sauvegardés.");
     } catch {
       toast.error("Paramètres conservés sur l'appareil. Réessayez quand la connexion sera stable.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -184,8 +191,9 @@ export default function SettingsPage() {
             size="sm"
             className="w-full sm:w-auto"
             onClick={toggleNotifications}
+            aria-label={notificationsEnabled ? "Voir comment gérer les notifications" : "Activer les rappels de révision"}
           >
-            {notificationsEnabled ? "Désactiver" : "Activer"}
+            {notificationsEnabled ? "Gérer" : "Activer"}
           </Button>
         </CardContent>
       </Card>
@@ -215,8 +223,9 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Button onClick={saveSettings} className="w-full">
-        <Save className="w-4 h-4 mr-2" /> Sauvegarder les paramètres
+      <Button onClick={saveSettings} className="w-full" disabled={saving || !user}>
+        {saving ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+        {saving ? "Sauvegarde..." : "Sauvegarder les paramètres"}
       </Button>
     </div>
   );
