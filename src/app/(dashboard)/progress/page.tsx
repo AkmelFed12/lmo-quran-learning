@@ -6,6 +6,7 @@ import ProgressRing from "@/components/dashboard/ProgressRing";
 import ProgressChart from "@/components/dashboard/ProgressChart";
 import HeatmapChart from "@/components/dashboard/HeatmapChart";
 import BadgesPanel from "@/components/dashboard/BadgesPanel";
+import ExportProgressPDF from "@/components/dashboard/ExportProgressPDF";
 import { ArrowRight, BookOpen, Brain, ClipboardCheck, Flame, Headphones, History, Sparkles, Target, Trophy } from "lucide-react";
 
 const fallbackHistory = [
@@ -48,10 +49,15 @@ export default function ProgressPage() {
     <div className="mx-auto max-w-7xl space-y-6">
       <header className="card-premium p-6">
         <p className="text-sm font-bold uppercase tracking-[0.22em] text-gold">Mes progrès</p>
-        <h1 className="mt-2 text-3xl font-heading font-bold text-slate-950 dark:text-white">Statistiques personnelles</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 dark:text-slate-300">
-          Suivez ce qui a été lu, écouté, mémorisé et révisé. Les données restent liées à votre compte.
-        </p>
+        <div className="mt-2 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h1 className="text-3xl font-heading font-bold text-slate-950 dark:text-white">Statistiques personnelles</h1>
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 dark:text-slate-300">
+              Suivez ce qui a été lu, écouté, mémorisé et révisé. Les données restent liées à votre compte.
+            </p>
+          </div>
+          <ExportProgressPDF data={data} globalScore={globalScore} levelLabel={level.label} />
+        </div>
       </header>
 
       <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
