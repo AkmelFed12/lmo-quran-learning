@@ -65,12 +65,19 @@ function getContentQualityIssues(item: AdminContentItem) {
   return issues;
 }
 
+type AdminContentHistoryEntry = {
+  id: string;
+  summary?: string;
+  actorEmail?: string;
+  createdAt?: unknown;
+};
+
 export default function AdminContentPage() {
   const { user } = useAuth();
   const [items, setItems] = useState<AdminContentItem[]>([]);
   const [editItem, setEditItem] = useState<AdminContentItem | null>(null);
   const [previewItem, setPreviewItem] = useState<AdminContentItem | null>(null);
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<AdminContentHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<AdminContentStatus | "all">("all");
 
@@ -119,7 +126,7 @@ export default function AdminContentPage() {
       setItems(nextSnapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as AdminContentItem)).filter((item) => item.archived !== true));
 
       const historySnapshot = await getDocs(query(collection(db, "adminContentHistory"), orderBy("createdAt", "desc")));
-      setHistory(historySnapshot.docs.slice(0, 12).map((entry) => ({ id: entry.id, ...entry.data() })));
+      setHistory(historySnapshot.docs.slice(0, 12).map((entry) => ({ id: entry.id, ...entry.data() } as AdminContentHistoryEntry)));
     } catch (error) {
       console.error(error);
       toast.error("Impossible de charger les contenus.");

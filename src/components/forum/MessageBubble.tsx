@@ -147,12 +147,13 @@ export default function MessageBubble({ post, onDelete }: PostProps) {
             <div className="mt-3 flex items-center gap-2">
               <input
                 type="text"
+                aria-label="Réponse au message"
                 value={replyContent}
                 onChange={(e) => setReplyContent(e.target.value)}
                 placeholder="Votre réponse…"
                 className="flex-1 rounded-lg border px-3 py-2 text-sm"
               />
-              <Button size="sm" onClick={handleReply} disabled={sending}>
+              <Button size="sm" onClick={handleReply} disabled={sending} aria-label="Envoyer la réponse">
                 <Send className="w-4 h-4" />
               </Button>
             </div>

@@ -5,6 +5,7 @@ import { db } from "@/lib/firebase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, BookOpen, TrendingUp, MessageSquare } from "lucide-react";
 import { Line } from "react-chartjs-2";
+import type { ChartData } from "chart.js";
 import {
   Chart as ChartJS, CategoryScale, LinearScale, PointElement,
   LineElement, Title, Tooltip, Legend, Filler,
@@ -14,7 +15,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 
 export default function AdminAnalyticsPage() {
   const [stats, setStats] = useState({ users: 0, sessions: 0, quizzes: 0, contacts: 0 });
-  const [chartData, setChartData] = useState<any>(null);
+  const [chartData, setChartData] = useState<ChartData<"line", number[], string> | null>(null);
 
   useEffect(() => {
     (async () => {

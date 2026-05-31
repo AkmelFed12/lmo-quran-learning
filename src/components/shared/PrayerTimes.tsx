@@ -16,10 +16,12 @@ export default function PrayerTimes() {
 
   useEffect(() => {
     const fetchPrayers = async () => {
+      setError("");
       try {
-        const res = await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${city}&country=${country}&method=2`);
+        const res = await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=2`);
         const data = await res.json();
-        const timings = data.data.timings;
+        const timings = data?.data?.timings;
+        if (!timings) throw new Error("Prayer times unavailable");
         setPrayers([
           { name: "Fajr", time: timings.Fajr },
           { name: "Dhuhr", time: timings.Dhuhr },
@@ -27,7 +29,8 @@ export default function PrayerTimes() {
           { name: "Maghrib", time: timings.Maghrib },
           { name: "Isha", time: timings.Isha },
         ]);
-      } catch (err) {
+      } catch {
+        setPrayers([]);
         setError("Impossible de récupérer les horaires.");
       }
     };
@@ -46,6 +49,7 @@ export default function PrayerTimes() {
         <div className="flex flex-wrap gap-2 mb-3">
           <input
             type="text"
+            aria-label="Ville pour les horaires de prière"
             value={city}
             onChange={(e) => setCity(e.target.value)}
             placeholder="Ville"
@@ -53,6 +57,7 @@ export default function PrayerTimes() {
           />
           <input
             type="text"
+            aria-label="Code pays pour les horaires de prière"
             value={country}
             onChange={(e) => setCountry(e.target.value)}
             placeholder="Code pays (ex: CI)"
