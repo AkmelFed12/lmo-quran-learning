@@ -28,7 +28,8 @@ type PendingDailyQuizSave = {
   completedAt: string;
 };
 
-const DAILY_QUIZ_VERSION = 3;
+const DAILY_QUIZ_VERSION = 4;
+const DAILY_QUIZ_RECENT_DAYS_TO_AVOID = 14;
 const DAILY_QUIZ_PENDING_SAVE_KEY = "lmo-pending-daily-quiz-save";
 const DAILY_QUIZ_OPEN_MINUTE = 20 * 60 + 30;
 const DAILY_QUIZ_CLOSE_MINUTE = 24 * 60;
@@ -50,10 +51,12 @@ function getTodayKey(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
-function getPreviousDayKey(today: string) {
-  const date = new Date(`${today}T12:00:00`);
-  date.setDate(date.getDate() - 1);
-  return getTodayKey(date);
+function getRecentDayKeys(today: string, count: number) {
+  return Array.from({ length: count }, (_, index) => {
+    const date = new Date(`${today}T12:00:00`);
+    date.setDate(date.getDate() - (index + 1));
+    return getTodayKey(date);
+  });
 }
 
 function isDailyQuizOpen(date = new Date()) {
@@ -81,6 +84,11 @@ function extractQuestionSignatures(value: unknown) {
     .map((question) => getQuestionSignature(question));
 }
 
+function hasUniqueQuestionSignatures(questions: LearningQuestion[]) {
+  const signatures = questions.map((question) => getQuestionSignature(question));
+  return signatures.length === new Set(signatures).size;
+}
+
 function createDailyQuestions(today: string, excludeIds: Iterable<number> = [], excludeSignatures: Iterable<string> = []): LearningQuestion[] {
   return getQuestionBatch({
     seed: `daily-quiz-${today}`,
@@ -89,6 +97,32 @@ function createDailyQuestions(today: string, excludeIds: Iterable<number> = [], 
     excludeIds,
     excludeSignatures,
   }).map((question) => shuffleQuestionOptions(question, `${today}-${question.id}`));
+}
+
+async function getRecentDailyQuizExclusions(today: string) {
+  const recentDayKeys = getRecentDayKeys(today, DAILY_QUIZ_RECENT_DAYS_TO_AVOID);
+  const snapshots = await Promise.allSettled(
+    recentDayKeys.map((dayKey) => getDoc(doc(db, "dailyQuizzes", dayKey)))
+  );
+
+  const questionIds: number[] = [];
+  const questionSignatures: string[] = [];
+  const sourceDates: string[] = [];
+
+  snapshots.forEach((result, index) => {
+    if (result.status !== "fulfilled" || !result.value.exists()) return;
+
+    const questions = result.value.data().questions;
+    questionIds.push(...extractQuestionIds(questions));
+    questionSignatures.push(...extractQuestionSignatures(questions));
+    sourceDates.push(recentDayKeys[index]);
+  });
+
+  return {
+    questionIds: Array.from(new Set(questionIds)),
+    questionSignatures: Array.from(new Set(questionSignatures)),
+    sourceDates,
+  };
 }
 
 function readPendingDailyQuizSave(): PendingDailyQuizSave | null {
@@ -212,47 +246,53 @@ export default function DailyQuiz() {
       const savedQuestions = snapshotData?.questions;
       const savedVersion = Number(snapshotData?.questionPolicyVersion || 0);
 
-      if (Array.isArray(savedQuestions) && savedQuestions.length >= 10 && savedVersion === DAILY_QUIZ_VERSION) {
+      if (
+        Array.isArray(savedQuestions) &&
+        savedQuestions.length >= 10 &&
+        savedVersion === DAILY_QUIZ_VERSION &&
+        hasUniqueQuestionSignatures(savedQuestions.slice(0, 10) as LearningQuestion[])
+      ) {
         const selectedQuestions = savedQuestions.slice(0, 10) as LearningQuestion[];
         setQuestions(selectedQuestions);
         recordQuestionBatchSeen(selectedQuestions);
         return;
       }
 
-      let previousDayQuestionIds: number[] = [];
-      let previousDayQuestionSignatures: string[] = [];
+      let recentQuestionIds: number[] = [];
+      let recentQuestionSignatures: string[] = [];
+      let recentSourceDates: string[] = [];
       try {
-        const previousQuizRef = doc(db, "dailyQuizzes", getPreviousDayKey(today));
-        const previousSnapshot = await getDoc(previousQuizRef);
-        const previousQuestions = previousSnapshot.exists() ? previousSnapshot.data().questions : [];
-        previousDayQuestionIds = extractQuestionIds(previousQuestions);
-        previousDayQuestionSignatures = extractQuestionSignatures(previousQuestions);
+        const exclusions = await getRecentDailyQuizExclusions(today);
+        recentQuestionIds = exclusions.questionIds;
+        recentQuestionSignatures = exclusions.questionSignatures;
+        recentSourceDates = exclusions.sourceDates;
       } catch {
-        previousDayQuestionIds = [];
-        previousDayQuestionSignatures = [];
+        recentQuestionIds = [];
+        recentQuestionSignatures = [];
+        recentSourceDates = [];
       }
 
-      const preparedQuestions = createDailyQuestions(today, previousDayQuestionIds, [
-        ...previousDayQuestionSignatures,
-        ...getSeenQuestionSignatures(),
-      ]);
+      const preparedQuestions = createDailyQuestions(today, recentQuestionIds, recentQuestionSignatures);
       setQuestions(preparedQuestions);
       recordQuestionBatchSeen(preparedQuestions);
 
-      if (!snapshot.exists()) {
-        try {
-          await setDoc(quizRef, {
+      try {
+        await setDoc(
+          quizRef,
+          {
             bankSize: QUESTION_BANK_SIZE,
             date: today,
-            excludedPreviousDayQuestionIds: previousDayQuestionIds,
-            excludedPreviousDayQuestionSignatures: previousDayQuestionSignatures,
+            excludedRecentQuizDates: recentSourceDates,
+            excludedRecentQuestionIds: recentQuestionIds,
+            excludedRecentQuestionSignatures: recentQuestionSignatures,
             preparedAt: new Date().toISOString(),
             questionPolicyVersion: DAILY_QUIZ_VERSION,
             questions: preparedQuestions,
-          });
-        } catch {
-          // Le quiz reste disponible localement si la connexion Firestore est momentanément indisponible.
-        }
+          },
+          { merge: true }
+        );
+      } catch {
+        // Le quiz reste disponible localement si la connexion Firestore est momentanément indisponible.
       }
     } catch {
       setQuestions(createDailyQuestions(today, [], getSeenQuestionSignatures()));
