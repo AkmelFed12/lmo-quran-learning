@@ -19,8 +19,17 @@ import {
 } from "@/lib/question-bank";
 
 type AnswerMap = Record<number, string>;
+type PendingDailyQuizSave = {
+  date: string;
+  displayName: string;
+  score: number;
+  total: number;
+  uid: string;
+  completedAt: string;
+};
 
 const DAILY_QUIZ_VERSION = 3;
+const DAILY_QUIZ_PENDING_SAVE_KEY = "lmo-pending-daily-quiz-save";
 const DAILY_QUIZ_OPEN_MINUTE = 20 * 60 + 30;
 const DAILY_QUIZ_CLOSE_MINUTE = 24 * 60;
 const correctFeedback = [
@@ -82,6 +91,57 @@ function createDailyQuestions(today: string, excludeIds: Iterable<number> = [], 
   }).map((question) => shuffleQuestionOptions(question, `${today}-${question.id}`));
 }
 
+function readPendingDailyQuizSave(): PendingDailyQuizSave | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const value = window.localStorage.getItem(DAILY_QUIZ_PENDING_SAVE_KEY);
+    return value ? JSON.parse(value) as PendingDailyQuizSave : null;
+  } catch {
+    return null;
+  }
+}
+
+function writePendingDailyQuizSave(value: PendingDailyQuizSave) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(DAILY_QUIZ_PENDING_SAVE_KEY, JSON.stringify(value));
+}
+
+function clearPendingDailyQuizSave() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(DAILY_QUIZ_PENDING_SAVE_KEY);
+}
+
+async function saveDailyQuizResult(payload: PendingDailyQuizSave) {
+  const rankingSave = setDoc(
+    doc(db, "rankings", payload.date, "users", payload.uid),
+    {
+      displayName: payload.displayName,
+      score: payload.score,
+      total: payload.total,
+      uid: payload.uid,
+      updatedAt: payload.completedAt,
+    },
+    { merge: true }
+  );
+
+  const progressSave = setDoc(
+    doc(db, "progress", payload.uid),
+    {
+      quiz: {
+        lastDailyScore: payload.score,
+        lastDailyTotal: payload.total,
+        lastDailyQuizAt: payload.completedAt,
+      },
+      "stats.xp": increment(payload.score * 10),
+    },
+    { merge: true }
+  );
+
+  const results = await Promise.allSettled([rankingSave, progressSave]);
+  return results.filter((result) => result.status === "rejected");
+}
+
 export default function DailyQuiz() {
   const { user } = useAuth();
   const [today] = useState(() => getTodayKey());
@@ -123,6 +183,23 @@ export default function DailyQuiz() {
 
     void checkAlreadyPlayed();
   }, [today, user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const retryPendingSave = async () => {
+      const pending = readPendingDailyQuizSave();
+      if (!pending || pending.uid !== user.uid) return;
+
+      const failedSaves = await saveDailyQuizResult(pending);
+      if (failedSaves.length === 0) {
+        clearPendingDailyQuizSave();
+        toast.success("Score quotidien synchronisé.");
+      }
+    };
+
+    void retryPendingSave();
+  }, [user]);
 
   const fetchQuestions = useCallback(async () => {
     setLoading(true);
@@ -210,35 +287,23 @@ export default function DailyQuiz() {
 
       if (!user) return;
 
-      try {
-        await setDoc(
-          doc(db, "rankings", today, "users", user.uid),
-          {
-            displayName: user.displayName || user.email || "Apprenant",
-            score: correctAnswers,
-            total: questions.length,
-            uid: user.uid,
-            updatedAt: new Date().toISOString(),
-          },
-          { merge: true }
-        );
+      const payload: PendingDailyQuizSave = {
+        date: today,
+        displayName: user.displayName || user.email || "Apprenant",
+        score: correctAnswers,
+        total: questions.length,
+        uid: user.uid,
+        completedAt: new Date().toISOString(),
+      };
+      const failedSaves = await saveDailyQuizResult(payload);
 
-        await setDoc(
-          doc(db, "progress", user.uid),
-          {
-            quiz: {
-              lastDailyScore: correctAnswers,
-              lastDailyTotal: questions.length,
-              lastDailyQuizAt: new Date().toISOString(),
-            },
-            stats: {
-              xp: increment(correctAnswers * 10),
-            },
-          },
-          { merge: true }
-        );
-      } catch {
-        toast.error("Score calculé, mais sauvegarde cloud indisponible.");
+      if (failedSaves.length === 0) {
+        clearPendingDailyQuizSave();
+        toast.success("Score enregistré.");
+      } else {
+        writePendingDailyQuizSave(payload);
+        console.warn("Sauvegarde partielle du quiz quotidien :", failedSaves);
+        toast.info("Score affiché. La synchronisation sera retentée lors de votre prochaine activité.");
       }
     },
     [alreadyPlayed, answers, questions, submitted, today, user]
