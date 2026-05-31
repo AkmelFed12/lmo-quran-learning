@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Mic, Square, Play, Pause } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -11,12 +11,28 @@ export default function VoiceRecorder({ referenceAudioUrl }: { referenceAudioUrl
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const recordingUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      audioRef.current?.pause();
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      if (recordingUrlRef.current) URL.revokeObjectURL(recordingUrlRef.current);
+    };
+  }, []);
 
   const startRecording = async () => {
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      toast.error("Enregistrement audio non supporté sur ce navigateur.");
+      return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
+      streamRef.current = stream;
       chunksRef.current = [];
 
       mediaRecorder.ondataavailable = (e) => {
@@ -24,37 +40,61 @@ export default function VoiceRecorder({ referenceAudioUrl }: { referenceAudioUrl
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        setAudioBlob(blob);
-        stream.getTracks().forEach(track => track.stop());
+        if (chunksRef.current.length > 0) {
+          setAudioBlob(new Blob(chunksRef.current, { type: "audio/webm" }));
+        }
+        stream.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
       };
 
       mediaRecorder.start();
       setRecording(true);
-    } catch (err) {
+    } catch {
       toast.error("Impossible d'accéder au microphone.");
     }
   };
 
   const stopRecording = () => {
-    mediaRecorderRef.current?.stop();
+    if (mediaRecorderRef.current?.state === "recording") {
+      mediaRecorderRef.current.stop();
+    }
     setRecording(false);
   };
 
-  const playRecording = () => {
+  const playRecording = async () => {
     if (!audioBlob) return;
-    const url = URL.createObjectURL(audioBlob);
-    const audio = new Audio(url);
-    audioRef.current = audio;
-    audio.play();
-    setPlaying(true);
-    audio.onended = () => setPlaying(false);
+    if (playing) {
+      audioRef.current?.pause();
+      setPlaying(false);
+      return;
+    }
+
+    try {
+      audioRef.current?.pause();
+      if (recordingUrlRef.current) URL.revokeObjectURL(recordingUrlRef.current);
+      const url = URL.createObjectURL(audioBlob);
+      recordingUrlRef.current = url;
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      await audio.play();
+      setPlaying(true);
+      audio.onended = () => setPlaying(false);
+    } catch {
+      setPlaying(false);
+      toast.error("Lecture de l'enregistrement impossible.");
+    }
   };
 
-  const playReference = () => {
+  const playReference = async () => {
     if (!referenceAudioUrl) return;
-    const audio = new Audio(referenceAudioUrl);
-    audio.play();
+    try {
+      audioRef.current?.pause();
+      const audio = new Audio(referenceAudioUrl);
+      audioRef.current = audio;
+      await audio.play();
+    } catch {
+      toast.error("Lecture du récitateur impossible pour le moment.");
+    }
   };
 
   return (
@@ -62,22 +102,22 @@ export default function VoiceRecorder({ referenceAudioUrl }: { referenceAudioUrl
       <h3 className="text-lg font-semibold">Enregistrer votre récitation</h3>
       <div className="flex gap-2 justify-center">
         {!recording ? (
-          <Button onClick={startRecording} className="bg-red-600 hover:bg-red-700">
+          <Button onClick={startRecording} className="bg-red-600 hover:bg-red-700" type="button">
             <Mic className="w-4 h-4 mr-2" /> Enregistrer
           </Button>
         ) : (
-          <Button onClick={stopRecording} variant="outline">
+          <Button onClick={stopRecording} variant="outline" type="button">
             <Square className="w-4 h-4 mr-2" /> Arrêter
           </Button>
         )}
         {audioBlob && (
-          <Button onClick={playRecording} variant="outline">
+          <Button onClick={playRecording} variant="outline" type="button">
             {playing ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
             {playing ? "Pause" : "Écouter"}
           </Button>
         )}
         {referenceAudioUrl && (
-          <Button onClick={playReference} variant="outline">
+          <Button onClick={playReference} variant="outline" type="button">
             <Play className="w-4 h-4 mr-2" /> Écouter le récitateur
           </Button>
         )}
