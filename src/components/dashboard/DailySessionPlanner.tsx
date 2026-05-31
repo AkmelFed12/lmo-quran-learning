@@ -29,6 +29,8 @@ export default function DailySessionPlanner() {
           <div className="mt-5 grid grid-cols-3 gap-2">
             {[5, 10, 20].map((value) => (
               <button
+                type="button"
+                aria-pressed={duration === value}
                 key={value}
                 onClick={() => setDuration(value as 5 | 10 | 20)}
                 className={`touch-target rounded-2xl border px-3 py-3 text-sm font-semibold transition ${
@@ -45,6 +47,8 @@ export default function DailySessionPlanner() {
           <div className="mt-5 grid gap-2">
             {studyPlans.map((plan) => (
               <button
+                type="button"
+                aria-pressed={selectedPlanId === plan.id}
                 key={plan.id}
                 onClick={() => setSelectedPlanId(plan.id)}
                 className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
