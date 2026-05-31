@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 export default function PwaUpdatePrompt() {
   const [waitingRegistration, setWaitingRegistration] = useState<ServiceWorkerRegistration | null>(null);
   const [visible, setVisible] = useState(false);
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return undefined;
@@ -42,7 +43,7 @@ export default function PwaUpdatePrompt() {
     navigator.serviceWorker.ready.then((registration) => {
       watchRegistration(registration);
       registration.update().catch(() => undefined);
-    });
+    }).catch(() => undefined);
 
     return () => {
       navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
@@ -50,9 +51,16 @@ export default function PwaUpdatePrompt() {
   }, []);
 
   const updateApplication = async () => {
-    if ("caches" in window) {
-      const keys = await caches.keys();
-      await Promise.all(keys.filter((key) => key.includes("workbox") || key.includes("next")).map((key) => caches.delete(key)));
+    if (updating) return;
+    setUpdating(true);
+
+    try {
+      if ("caches" in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.filter((key) => key.includes("workbox") || key.includes("next")).map((key) => caches.delete(key)));
+      }
+    } catch {
+      // Même si le navigateur refuse l'accès au cache, on continue la mise à jour.
     }
 
     waitingRegistration?.waiting?.postMessage({ type: "SKIP_WAITING" });
@@ -62,7 +70,7 @@ export default function PwaUpdatePrompt() {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-24 left-3 right-3 z-[70] mx-auto max-w-md rounded-[1.4rem] border border-emerald-900/10 bg-white p-4 shadow-2xl shadow-emerald-950/20 dark:border-white/10 dark:bg-slate-900 md:bottom-5">
+    <div className="fixed bottom-24 left-3 right-3 z-[70] mx-auto max-w-md rounded-[1.4rem] border border-emerald-900/10 bg-white p-4 shadow-2xl shadow-emerald-950/20 dark:border-white/10 dark:bg-slate-900 md:bottom-5" role="status" aria-live="polite">
       <div className="flex items-start gap-3">
         <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-gold">
           <RefreshCw className="h-5 w-5" />
@@ -73,10 +81,11 @@ export default function PwaUpdatePrompt() {
             Mettez l'application à jour pour afficher les dernières corrections et éviter l'ancien cache.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <Button size="sm" onClick={updateApplication}>
-              Mettre à jour
+            <Button size="sm" onClick={updateApplication} disabled={updating}>
+              <RefreshCw className={`mr-2 h-4 w-4 ${updating ? "animate-spin" : ""}`} />
+              {updating ? "Mise à jour..." : "Mettre à jour"}
             </Button>
-            <Button size="sm" variant="outline" onClick={() => setVisible(false)}>
+            <Button size="sm" variant="outline" onClick={() => setVisible(false)} disabled={updating}>
               Plus tard
             </Button>
           </div>
