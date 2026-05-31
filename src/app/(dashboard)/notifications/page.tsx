@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { AlertCircle, Bell, BellOff, CalendarClock, ClipboardCheck, RefreshCw, Settings } from "lucide-react";
+import { AlertCircle, Bell, BellOff, CalendarClock, ClipboardCheck, Lightbulb, RefreshCw, Settings } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -71,6 +71,35 @@ export default function NotificationsPage() {
         : permission === "default"
           ? "Notifications non activées"
           : "Notifications non supportées";
+
+  const smartAdvice =
+    permission === "denied"
+      ? {
+          title: "Notifications bloquées",
+          text: "Votre navigateur bloque les rappels. Vous pouvez toujours utiliser cette page comme liste de révision.",
+          href: "/settings",
+          cta: "Voir les paramètres",
+        }
+      : dueRevisions.length > 0
+        ? {
+            title: "À faire aujourd'hui",
+            text: `Commencez par ${dueRevisions[0].surahNumber ? `la sourate ${dueRevisions[0].surahNumber}` : "la première révision"} puis gardez une session courte.`,
+            href: "/memorization",
+            cta: "Ouvrir la mémorisation",
+          }
+        : upcomingRevisions.length > 0
+          ? {
+              title: "Préparer la suite",
+              text: `Prochaine révision prévue le ${upcomingRevisions[0].nextReviewDate}. Une courte écoute aujourd'hui peut aider la mémorisation.`,
+              href: "/quran",
+              cta: "Écouter le Coran",
+            }
+          : {
+              title: "Rythme à jour",
+              text: "Aucune révision urgente. Profitez-en pour faire le quiz quotidien ou consolider une sourate courte.",
+              href: "/daily-quiz",
+              cta: "Faire le quiz",
+            };
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -150,6 +179,22 @@ export default function NotificationsPage() {
         </Card>
 
         <div className="space-y-5">
+          <Card className="border-emerald-900/10 bg-gradient-to-br from-emerald-800 to-emerald-700 text-white">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Lightbulb className="h-5 w-5 text-gold" />
+                Conseil intelligent
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="font-semibold">{smartAdvice.title}</p>
+              <p className="mt-2 text-sm leading-6 text-emerald-50/85">{smartAdvice.text}</p>
+              <Link href={smartAdvice.href} className="mt-4 inline-flex rounded-full bg-white px-4 py-2 text-sm font-bold text-emerald-800 transition hover:bg-gold">
+                {smartAdvice.cta}
+              </Link>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Accès rapides</CardTitle>
