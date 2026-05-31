@@ -34,6 +34,7 @@ const navSections = [
       { href: "/flashcards", icon: Layers, label: "Cartes de révision", color: "hover:bg-purple-50 dark:hover:bg-purple-900/20" },
       { href: "/planning", icon: Calendar, label: "Planning", color: "hover:bg-indigo-50 dark:hover:bg-indigo-900/20" },
       { href: "/daily-quiz", icon: Timer, label: "Quiz quotidien", color: "hover:bg-red-50 dark:hover:bg-red-900/20" },
+      { href: "/weekly-challenge", icon: Trophy, label: "Défi hebdo", color: "hover:bg-amber-50 dark:hover:bg-amber-900/20" },
     ],
   },
   {

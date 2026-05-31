@@ -30,6 +30,7 @@ const moreLinks = [
   { href: "/certificates", icon: Medal, label: "Certificats" },
   { href: "/library", icon: Library, label: "Bibliothèque" },
   { href: "/daily-quiz", icon: Timer, label: "Quiz quotidien" },
+  { href: "/weekly-challenge", icon: Trophy, label: "Défi hebdo" },
   { href: "/notifications", icon: Bell, label: "Notifications" },
   { href: "/leaderboard", icon: Trophy, label: "Classement" },
   { href: "/forum", icon: MessageCircle, label: "Forum" },
