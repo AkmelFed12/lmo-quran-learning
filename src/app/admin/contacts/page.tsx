@@ -10,23 +10,14 @@ import { toast } from "sonner";
 import { Archive, Mail, Phone, User } from "lucide-react";
 import { requestConfirmation } from "@/lib/confirm-action";
 
-type ContactMessage = {
-  id: string;
-  name?: string;
-  email?: string;
-  phone?: string;
-  message?: string;
-  archived?: boolean;
-};
-
 export default function AdminContactsPage() {
-  const [contacts, setContacts] = useState<ContactMessage[]>([]);
+  const [contacts, setContacts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchContacts = async () => {
     const q = query(collection(db, "contacts"), orderBy("createdAt", "desc"));
     const snap = await getDocs(q);
-    setContacts(snap.docs.map(d => ({ id: d.id, ...d.data() } as ContactMessage)).filter((message) => message.archived !== true));
+    setContacts(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter((message: any) => message.archived !== true));
     setLoading(false);
   };
 
@@ -84,7 +75,6 @@ export default function AdminContactsPage() {
                   variant="outline"
                   onClick={() => requestArchiveContact(msg.id)}
                   className="text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20 shrink-0"
-                  aria-label="Archiver ce message"
                 >
                   <Archive className="w-4 h-4" />
                 </Button>

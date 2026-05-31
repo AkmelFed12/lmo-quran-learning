@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
-import type { ChartData } from "chart.js";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -21,7 +20,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 
 export default function ProgressChart() {
   const { user } = useAuth();
-  const [chartData, setChartData] = useState<ChartData<"line", number[], string> | null>(null);
+  const [chartData, setChartData] = useState<any>(null);
 
   useEffect(() => {
     if (!user) return;
