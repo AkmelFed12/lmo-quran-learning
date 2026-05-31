@@ -553,6 +553,14 @@ export const libraryResources: LibraryResource[] = [
 ];
 
 export const platformHealthChecks = [
+  { id: "home", label: "Accueil", href: "/" },
+  { id: "login", label: "Connexion", href: "/login" },
+  { id: "dashboard", label: "Tableau de bord", href: "/dashboard" },
+  { id: "daily-quiz", label: "Quiz quotidien", href: "/daily-quiz" },
+  { id: "quran-page", label: "Page Coran", href: "/quran" },
+  { id: "memorization", label: "Mémorisation", href: "/memorization" },
+  { id: "forum", label: "Forum", href: "/forum" },
+  { id: "settings", label: "Paramètres", href: "/settings" },
   { id: "quran-api", label: "API Coran", href: "https://api.alquran.cloud/v1/surah/1" },
   { id: "arabic-audio", label: "Audio arabe", href: "/api/audio/arabic?text=%D8%A8%D9%8E" },
   { id: "manifest", label: "Manifest PWA", href: "/manifest.json" },
