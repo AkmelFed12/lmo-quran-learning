@@ -66,6 +66,9 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                 Réessayer
               </button>
             </div>
+            <p className="mt-5 text-xs leading-6 text-slate-400">
+              Cette action ne supprime pas vos données. Elle recharge seulement la dernière version disponible.
+            </p>
           </section>
         </main>
       </body>
