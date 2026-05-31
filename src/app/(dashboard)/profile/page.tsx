@@ -70,7 +70,7 @@ export default function ProfilePage() {
       await updateDoc(doc(db, "users", user.uid), { photoURL: url });
       toast.success("Photo mise à jour !");
     } catch (err) {
-      toast.error("Erreur lors de l'envoi de la photo.");
+      toast.error("Photo non envoyée. Vérifiez votre connexion puis réessayez.");
     } finally {
       setUploading(false);
     }

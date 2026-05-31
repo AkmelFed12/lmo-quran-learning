@@ -134,7 +134,7 @@ export default function LearningAssessment() {
         );
         setSavedSession(true);
       } catch {
-        toast.error("Bilan calculé, mais synchronisation cloud indisponible.");
+        toast.info("Bilan affiché. La sauvegarde sera à reprendre quand la connexion sera stable.");
       }
     };
 

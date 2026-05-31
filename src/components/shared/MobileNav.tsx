@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Home, BookOpen, Brain, Calendar, Book, LogOut, MoreHorizontal,
-  Trophy, User, Settings, Layers, X, MessageCircle, Timer, ClipboardCheck, AlertCircle, Library, Medal, GraduationCap
+  Trophy, User, Settings, Layers, X, MessageCircle, Timer, ClipboardCheck, AlertCircle, Library, Medal, GraduationCap, Bell
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { auth } from "@/lib/firebase";
@@ -30,6 +30,7 @@ const moreLinks = [
   { href: "/certificates", icon: Medal, label: "Certificats" },
   { href: "/library", icon: Library, label: "Bibliothèque" },
   { href: "/daily-quiz", icon: Timer, label: "Quiz quotidien" },
+  { href: "/notifications", icon: Bell, label: "Notifications" },
   { href: "/leaderboard", icon: Trophy, label: "Classement" },
   { href: "/forum", icon: MessageCircle, label: "Forum" },
   { href: "/testimonials", icon: MessageCircle, label: "Témoignages" },

@@ -59,9 +59,9 @@ export default function ForumPage() {
       setNewPost("");
       toast.success("Message publié.");
       fetchPosts();
-    } catch (err: any) {
+    } catch (err) {
       console.error("Erreur forum :", err);
-      toast.error("Erreur lors de l'envoi. Consultez la console pour plus de détails.");
+      toast.error("Message non envoyé. Vérifiez votre connexion puis réessayez.");
     } finally {
       setLoading(false);
     }
@@ -77,9 +77,9 @@ export default function ForumPage() {
       });
       toast.success("Message masqué sans suppression.");
       void fetchPosts();
-    } catch (err: any) {
+    } catch (err) {
       console.error("Erreur suppression :", err);
-      toast.error("Erreur lors de la suppression.");
+      toast.error("Impossible de masquer ce message pour le moment.");
     }
   };
 

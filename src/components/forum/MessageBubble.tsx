@@ -53,8 +53,8 @@ export default function MessageBubble({ post, onDelete }: PostProps) {
       setReplyContent("");
       setShowReply(false);
       toast.success("Réponse ajoutée.");
-    } catch (err) {
-      toast.error("Erreur lors de la réponse.");
+    } catch {
+      toast.error("Réponse non envoyée. Vérifiez votre connexion puis réessayez.");
     } finally {
       setSending(false);
     }

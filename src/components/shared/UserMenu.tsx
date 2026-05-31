@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { ChevronDown, LayoutDashboard, LogOut, Settings, User } from "lucide-react";
+import { Bell, ChevronDown, LayoutDashboard, LogOut, Settings, User } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -70,6 +70,14 @@ export default function UserMenu() {
             >
               <User className="h-4 w-4" />
               Profil
+            </Link>
+            <Link
+              href="/notifications"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700"
+            >
+              <Bell className="h-4 w-4" />
+              Notifications
             </Link>
             <Link
               href="/settings"

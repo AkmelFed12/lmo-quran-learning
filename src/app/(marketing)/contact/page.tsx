@@ -35,7 +35,7 @@ export default function ContactPage() {
       setPhone("");
       setMessage("");
     } catch (err) {
-      toast.error("Erreur lors de l'envoi.");
+      toast.error("Message non envoyé. Vérifiez votre connexion puis réessayez.");
     } finally {
       setLoading(false);
     }
