@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Home, BookOpen, Brain, Calendar, Settings, LogOut, Book, Trophy, User, ChevronRight,
-  Layers, MessageSquare, Timer, MessageCircle, ClipboardCheck, AlertCircle, Library, Medal, GraduationCap
+  Layers, MessageSquare, Timer, MessageCircle, ClipboardCheck, AlertCircle, Library, Medal, GraduationCap, Bell
 } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
@@ -18,6 +18,7 @@ const navSections = [
     links: [
       { href: "/dashboard", icon: Home, label: "Tableau de bord", color: "hover:bg-emerald-50 dark:hover:bg-emerald-900/20" },
       { href: "/guided-path", icon: ClipboardCheck, label: "Parcours guidé", color: "hover:bg-emerald-50 dark:hover:bg-emerald-900/20" },
+      { href: "/notifications", icon: Bell, label: "Notifications", color: "hover:bg-amber-50 dark:hover:bg-amber-900/20" },
       { href: "/progress", icon: Trophy, label: "Mes progrès", color: "hover:bg-gold/10 dark:hover:bg-gold/10" },
     ],
   },

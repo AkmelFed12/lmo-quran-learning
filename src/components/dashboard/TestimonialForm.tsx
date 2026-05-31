@@ -24,7 +24,7 @@ export default function TestimonialForm() {
       toast.success("Merci pour votre témoignage !");
       setMessage("");
     } catch (err) {
-      toast.error("Erreur lors de l'envoi.");
+      toast.error("Témoignage non envoyé. Vérifiez votre connexion puis réessayez.");
     } finally {
       setLoading(false);
     }
