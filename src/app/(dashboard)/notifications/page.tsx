@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Bell, BellOff, CalendarClock, ClipboardCheck, RefreshCw, Settings } from "lucide-react";
+import { AlertCircle, Bell, BellOff, CalendarClock, ClipboardCheck, RefreshCw, Settings } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -22,16 +22,26 @@ export default function NotificationsPage() {
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">("unsupported");
   const [revisions, setRevisions] = useState<RevisionReminder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const today = useMemo(() => new Date().toISOString().split("T")[0], []);
-  const dueRevisions = revisions.filter((session) => session.nextReviewDate && session.nextReviewDate <= today);
+  const sortedRevisions = useMemo(
+    () =>
+      revisions
+        .filter((session) => typeof session.nextReviewDate === "string" && session.nextReviewDate.length > 0)
+        .sort((first, second) => first.nextReviewDate!.localeCompare(second.nextReviewDate!)),
+    [revisions],
+  );
+  const dueRevisions = sortedRevisions.filter((session) => session.nextReviewDate && session.nextReviewDate <= today);
   const upcomingRevisions = revisions
     .filter((session) => session.nextReviewDate && session.nextReviewDate > today)
+    .sort((first, second) => first.nextReviewDate!.localeCompare(second.nextReviewDate!))
     .slice(0, 5);
 
   const loadNotifications = useCallback(async () => {
     if (!user) return;
     setLoading(true);
+    setLoadError(null);
     try {
       if ("Notification" in window) {
         setPermission(Notification.permission);
@@ -39,7 +49,9 @@ export default function NotificationsPage() {
 
       const snapshot = await getDoc(doc(db, "memorization", user.uid));
       const sessions = snapshot.exists() ? (snapshot.data().sessions || []) as RevisionReminder[] : [];
-      setRevisions(sessions);
+      setRevisions(sessions.filter((session) => session && typeof session === "object"));
+    } catch {
+      setLoadError("Impossible de charger les rappels pour le moment. Vous pouvez réessayer sans risque.");
     } finally {
       setLoading(false);
     }
@@ -100,13 +112,18 @@ export default function NotificationsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-3">
             <CardTitle>À traiter</CardTitle>
-            <Button variant="outline" size="sm" onClick={() => void loadNotifications()} disabled={loading}>
+            <Button variant="outline" size="sm" onClick={() => void loadNotifications()} disabled={loading} aria-label="Actualiser les rappels">
               <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
               Actualiser
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
-            {dueRevisions.length === 0 ? (
+            {loadError ? (
+              <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-100">
+                <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+                <span>{loadError}</span>
+              </div>
+            ) : dueRevisions.length === 0 ? (
               <div className="rounded-2xl bg-emerald-50 p-4 text-sm leading-6 text-emerald-950 dark:bg-emerald-950/30 dark:text-emerald-100">
                 Rien d'urgent pour le moment. Votre planning de révision est à jour.
               </div>
