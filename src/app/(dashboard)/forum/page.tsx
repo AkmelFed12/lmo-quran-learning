@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   collection, addDoc, query, orderBy, getDocs,
   serverTimestamp, doc, updateDoc,
@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Send, MessageCircle, Eye, EyeOff } from "lucide-react";
+import { RefreshCw, Send, MessageCircle, Eye, EyeOff } from "lucide-react";
 import MessageBubble from "@/components/forum/MessageBubble";
 
 type FirestoreDate = {
@@ -39,15 +39,27 @@ export default function ForumPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [newPost, setNewPost] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingPosts, setLoadingPosts] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [anonymous, setAnonymous] = useState(false);
 
-  const fetchPosts = async () => {
-    const q = query(collection(db, "forum"), orderBy("createdAt", "desc"));
-    const snap = await getDocs(q);
-    setPosts(snap.docs.map(d => ({ id: d.id, ...d.data() } as Post)).filter((post) => post.hidden !== true));
-  };
+  const fetchPosts = useCallback(async () => {
+    setLoadingPosts(true);
+    setLoadError(false);
+    try {
+      const q = query(collection(db, "forum"), orderBy("createdAt", "desc"));
+      const snap = await getDocs(q);
+      setPosts(snap.docs.map(d => ({ id: d.id, ...d.data() } as Post)).filter((post) => post.hidden !== true));
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoadingPosts(false);
+    }
+  }, []);
 
-  useEffect(() => { fetchPosts(); }, []);
+  useEffect(() => {
+    void fetchPosts();
+  }, [fetchPosts]);
 
   const handleSubmit = async () => {
     if (!newPost.trim() || !user) {
@@ -70,9 +82,8 @@ export default function ForumPage() {
       });
       setNewPost("");
       toast.success("Message publié.");
-      fetchPosts();
-    } catch (err) {
-      console.error("Erreur forum :", err);
+      void fetchPosts();
+    } catch {
       toast.error("Message non envoyé. Vérifiez votre connexion puis réessayez.");
     } finally {
       setLoading(false);
@@ -88,8 +99,7 @@ export default function ForumPage() {
       });
       toast.success("Message masqué sans suppression.");
       void fetchPosts();
-    } catch (err) {
-      console.error("Erreur suppression :", err);
+    } catch {
       toast.error("Impossible de masquer ce message pour le moment.");
     }
   };
@@ -156,10 +166,24 @@ export default function ForumPage() {
 
       {/* Liste des messages */}
       <div className="space-y-4">
-        {posts.length === 0 && (
+        {loadingPosts && (
+          <div className="rounded-2xl border border-emerald-900/10 bg-white p-4 text-center text-sm text-slate-500 shadow-sm dark:border-white/10 dark:bg-slate-900 dark:text-slate-400">
+            Chargement des discussions...
+          </div>
+        )}
+        {loadError && (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950 dark:border-amber-900/60 dark:bg-amber-950/25 dark:text-amber-100">
+            <p>Forum indisponible pour le moment. Vos données ne sont pas supprimées, réessayez dans quelques instants.</p>
+            <Button variant="outline" size="sm" className="mt-3" onClick={() => void fetchPosts()}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Réessayer
+            </Button>
+          </div>
+        )}
+        {!loadingPosts && !loadError && posts.length === 0 && (
           <p className="text-center text-slate-500">Aucune discussion pour le moment. Soyez le premier à écrire !</p>
         )}
-        {posts.map((post) => (
+        {!loadError && posts.map((post) => (
           <MessageBubble key={post.id} post={post} onDelete={handleDelete} />
         ))}
       </div>
