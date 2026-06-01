@@ -7,6 +7,7 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/hooks/useAuth";
 import dynamic from "next/dynamic";
+import { CalendarDays, CheckCircle2, FileDown, Target } from "lucide-react";
 
 const ExportPlanningPDF = dynamic(() => import("./ExportPlanningPDF"), {
   ssr: false,
@@ -116,15 +117,20 @@ export default function PlanningForm() {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="overflow-hidden border-emerald-900/10 bg-white/90 shadow-sm dark:border-white/10 dark:bg-slate-900/75">
         <CardHeader>
-          <CardTitle>Votre objectif de mémorisation</CardTitle>
+          <CardTitle className="flex items-center gap-3 text-slate-950 dark:text-white">
+            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-emerald-100 text-emerald-900 dark:bg-emerald-950/60 dark:text-gold">
+              <Target className="h-5 w-5" />
+            </span>
+            Votre objectif de mémorisation
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <label className="text-sm font-medium">Sourate de départ :</label>
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Sourate de départ</label>
             <select
-              className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2"
+              className="mt-2 min-h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-gold dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
               value={startSurah}
               onChange={(e) => setStartSurah(Number(e.target.value))}
             >
@@ -135,49 +141,74 @@ export default function PlanningForm() {
               ))}
             </select>
           </div>
+          <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="text-sm font-medium">Versets par jour :</label>
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Versets par jour</label>
             <input
               type="number"
               min={1}
               max={100}
               value={goalVerses}
               onChange={(e) => setGoalVerses(Number(e.target.value))}
-              className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2"
+              className="mt-2 min-h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-gold dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
             />
           </div>
           <div>
-            <label className="text-sm font-medium">Jours par semaine :</label>
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Jours par semaine</label>
             <input
               type="number"
               min={1}
               max={7}
               value={daysPerWeek}
               onChange={(e) => setDaysPerWeek(Number(e.target.value))}
-              className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2"
+              className="mt-2 min-h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-gold dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
             />
           </div>
-          <Button onClick={preparePlan} className="w-full">
+          </div>
+          <p className="rounded-2xl bg-emerald-50 p-3 text-xs leading-5 text-emerald-950 dark:bg-emerald-950/30 dark:text-emerald-100">
+            Conseil : commencez avec peu de versets, puis augmentez seulement quand les révisions restent stables.
+          </p>
+          <Button onClick={preparePlan} className="min-h-12 w-full rounded-full bg-emerald-900 text-white hover:bg-emerald-800">
             Préparer mon planning
           </Button>
         </CardContent>
       </Card>
 
       {plan.length > 0 && (
-        <Card>
+        <Card className="overflow-hidden border-emerald-900/10 bg-white/90 shadow-sm dark:border-white/10 dark:bg-slate-900/75">
           <CardHeader>
-            <CardTitle>Votre planning hebdomadaire</CardTitle>
+            <CardTitle className="flex items-center gap-3 text-slate-950 dark:text-white">
+              <span className="grid h-10 w-10 place-items-center rounded-2xl bg-gold/20 text-emerald-900 dark:text-gold">
+                <CalendarDays className="h-5 w-5" />
+              </span>
+              Votre planning hebdomadaire
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4">
+            <div className="grid gap-3">
               {plan.map((day, i) => (
-                <div key={i} className="card-premium p-4 flex justify-between items-center">
-                  <span className="font-semibold">{day.day}</span>
-                  <span className="text-sm text-slate-600 dark:text-slate-400">
+                <div key={i} className="flex flex-col gap-3 rounded-[1.25rem] border border-emerald-900/10 bg-ivory/70 p-4 dark:border-white/10 dark:bg-white/[0.04] sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="grid h-9 w-9 place-items-center rounded-xl bg-emerald-950 text-sm font-bold text-gold">
+                      {i + 1}
+                    </span>
+                    <span className="font-semibold text-slate-950 dark:text-white">{day.day}</span>
+                  </div>
+                  <span className="text-sm leading-6 text-slate-600 dark:text-slate-300">
                     {day.surahName} ({day.surah}) : versets {day.fromAyah} à {day.toAyah} ({day.verses} v.)
                   </span>
                 </div>
               ))}
+            </div>
+            <div className="mt-4 grid gap-3 rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-950 dark:bg-emerald-950/30 dark:text-emerald-100 sm:grid-cols-[1fr_auto] sm:items-center">
+              <p className="flex gap-2 leading-6">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+                Planning prêt : gardez la même heure chaque jour si possible, puis cochez mentalement la séance terminée.
+              </p>
+              <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-bold text-emerald-950 dark:bg-slate-950 dark:text-emerald-100">
+                <FileDown className="h-4 w-4" />
+                Export PDF
+              </span>
             </div>
             <ExportPlanningPDF plan={plan} />
           </CardContent>
