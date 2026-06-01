@@ -3,6 +3,8 @@ import { ArrowRight, BookMarked, Library, ShieldCheck } from "lucide-react";
 import { libraryResources } from "@/lib/learning-content";
 
 export default function PedagogicalLibrary() {
+  const categories = Array.from(new Set(libraryResources.map((resource) => resource.category)));
+
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <header className="card-premium p-5 sm:p-6">
@@ -13,7 +15,32 @@ export default function PedagogicalLibrary() {
         <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 dark:text-slate-300">
           Méthode, sources, conseils pratiques et limites pédagogiques. Cette bibliothèque accompagne l'apprentissage sans remplacer un professeur qualifié.
         </p>
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl bg-emerald-50 p-4 dark:bg-emerald-950/30">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-800 dark:text-gold">Ressources</p>
+            <p className="mt-2 text-2xl font-bold text-slate-950 dark:text-white">{libraryResources.length}</p>
+          </div>
+          <div className="rounded-2xl bg-gold/15 p-4">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-900 dark:text-gold">Catégories</p>
+            <p className="mt-2 text-2xl font-bold text-slate-950 dark:text-white">{categories.length}</p>
+          </div>
+          <div className="rounded-2xl bg-sky-50 p-4 dark:bg-sky-950/30">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-sky-800 dark:text-sky-100">Usage conseillé</p>
+            <p className="mt-2 text-sm font-semibold leading-6 text-slate-700 dark:text-slate-200">Lire une fiche, appliquer une action.</p>
+          </div>
+        </div>
       </header>
+
+      <section className="rounded-[1.5rem] border border-emerald-900/10 bg-white/85 p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/70">
+        <p className="text-sm font-bold text-slate-950 dark:text-white">Repères disponibles</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {categories.map((category) => (
+            <span key={category} className="rounded-full bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100">
+              {category}
+            </span>
+          ))}
+        </div>
+      </section>
 
       <section className="grid gap-4 md:grid-cols-2">
         {libraryResources.map((resource) => (
