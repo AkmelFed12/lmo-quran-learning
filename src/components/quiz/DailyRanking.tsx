@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, Medal } from "lucide-react";
+import { ArrowRight, Trophy, Medal } from "lucide-react";
 import { toast } from "sonner";
 
 interface RankingUser {
@@ -56,6 +57,8 @@ export default function DailyRanking({ highlightUid, optimisticEntry }: DailyRan
     return null;
   };
 
+  const highlightedRank = highlightUid ? users.findIndex((user) => user.uid === highlightUid) + 1 : 0;
+
   return (
     <Card>
       <CardHeader>
@@ -64,7 +67,13 @@ export default function DailyRanking({ highlightUid, optimisticEntry }: DailyRan
           Classement du jour
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        {highlightedRank > 0 && (
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm leading-6 text-emerald-950 dark:border-emerald-900/50 dark:bg-emerald-950/25 dark:text-emerald-100">
+            <span className="font-bold">Votre rang aujourd'hui : {highlightedRank}</span>
+            <span className="ml-1">sur {users.length} participant{users.length > 1 ? "s" : ""}.</span>
+          </div>
+        )}
         {users.length === 0 && <p className="text-slate-500 text-sm">Aucun participant pour le moment.</p>}
         <div className="space-y-2">
           {users.map((user, idx) => (
@@ -85,6 +94,10 @@ export default function DailyRanking({ highlightUid, optimisticEntry }: DailyRan
             </div>
           ))}
         </div>
+        <Link href="/leaderboard" className="inline-flex items-center gap-2 text-sm font-bold text-emerald-800 dark:text-gold">
+          Voir le classement complet
+          <ArrowRight className="h-4 w-4" />
+        </Link>
       </CardContent>
     </Card>
   );
