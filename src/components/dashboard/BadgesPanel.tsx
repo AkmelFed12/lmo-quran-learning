@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -25,6 +26,17 @@ const BADGES_DEFINITION: Omit<Badge, "earned">[] = [
   { id: "ayahs-100", name: "100 versets", description: "Mémoriser 100 versets", icon: Trophy, aliases: ["memorize-100"] },
   { id: "weekly-challenge", name: "Défi rejoint", description: "Rejoindre un défi hebdomadaire", icon: Zap },
 ];
+
+const BADGE_ACTIONS: Record<string, { href: string; label: string }> = {
+  "first-letter": { href: "/arabic", label: "Commencer l'arabe" },
+  "alphabet-master": { href: "/arabic", label: "Continuer l'alphabet" },
+  "first-surah": { href: "/memorization", label: "Mémoriser une sourate" },
+  "streak-7": { href: "/dashboard", label: "Garder la série" },
+  "streak-30": { href: "/dashboard", label: "Continuer chaque jour" },
+  "quiz-perfect": { href: "/daily-quiz", label: "Faire le quiz" },
+  "ayahs-100": { href: "/memorization", label: "Avancer en mémorisation" },
+  "weekly-challenge": { href: "/weekly-challenge", label: "Rejoindre le défi" },
+};
 
 export default function BadgesPanel() {
   const { user } = useAuth();
@@ -59,6 +71,8 @@ export default function BadgesPanel() {
 
   const earnedCount = badges.filter((b) => b.earned).length;
   const percent = Math.round((earnedCount / badges.length) * 100);
+  const nextBadge = badges.find((badge) => !badge.earned);
+  const nextBadgeAction = nextBadge ? BADGE_ACTIONS[nextBadge.id] : null;
 
   return (
     <div className="card-premium p-6">
@@ -74,6 +88,27 @@ export default function BadgesPanel() {
       <div className="mb-5 h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
         <div className="h-full rounded-full bg-emerald-600 transition-all" style={{ width: `${percent}%` }} />
       </div>
+      {nextBadge && nextBadgeAction ? (
+        <div className="mb-5 rounded-2xl border border-gold/30 bg-gold/10 p-4">
+          <div className="flex items-start gap-3">
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white text-amber-700 dark:bg-white/10 dark:text-gold">
+              <nextBadge.icon className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-700 dark:text-gold">Prochain badge</p>
+              <h4 className="mt-1 font-semibold text-slate-950 dark:text-white">{nextBadge.name}</h4>
+              <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">{nextBadge.description}</p>
+              <Link href={nextBadgeAction.href} className="mt-3 inline-flex rounded-full bg-emerald-700 px-4 py-2 text-sm font-bold text-white transition hover:bg-emerald-800">
+                {nextBadgeAction.label}
+              </Link>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/25 dark:text-emerald-100">
+          Tous les badges visibles sont débloqués. Très beau parcours.
+        </div>
+      )}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {badges.map((badge) => (
           <div
