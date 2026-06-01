@@ -20,6 +20,9 @@ function isTrackUnlocked(id: string, data: ReturnType<typeof useDashboardData>["
 export default function CertificatesPanel() {
   const { user } = useAuth();
   const { data } = useDashboardData();
+  const unlockedTracks = certificateTracks.filter((track) => isTrackUnlocked(track.id, data));
+  const nextTrack = certificateTracks.find((track) => !isTrackUnlocked(track.id, data));
+  const unlockedPercent = Math.round((unlockedTracks.length / certificateTracks.length) * 100);
 
   const prepareCertificate = async (track: (typeof certificateTracks)[number]) => {
     if (!user) {
@@ -110,6 +113,24 @@ export default function CertificatesPanel() {
         <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 dark:text-slate-300">
           Ces attestations servent à suivre le parcours dans l'application. Elles ne remplacent pas une validation auprès d'un enseignant qualifié.
         </p>
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl bg-emerald-50 p-4 dark:bg-emerald-950/30">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-800 dark:text-gold">Débloqués</p>
+            <p className="mt-2 text-2xl font-bold text-slate-950 dark:text-white">
+              {unlockedTracks.length}/{certificateTracks.length}
+            </p>
+          </div>
+          <div className="rounded-2xl bg-gold/15 p-4">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-900 dark:text-gold">Avancement</p>
+            <p className="mt-2 text-2xl font-bold text-slate-950 dark:text-white">{unlockedPercent}%</p>
+          </div>
+          <div className="rounded-2xl bg-sky-50 p-4 dark:bg-sky-950/30">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-sky-800 dark:text-sky-100">Prochain jalon</p>
+            <p className="mt-2 text-sm font-semibold leading-6 text-slate-700 dark:text-slate-200">
+              {nextTrack ? nextTrack.title : "Tous les jalons sont débloqués."}
+            </p>
+          </div>
+        </div>
       </header>
 
       <section className="grid gap-4 md:grid-cols-2">
