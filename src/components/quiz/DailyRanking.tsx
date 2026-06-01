@@ -12,7 +12,12 @@ interface RankingUser {
   score: number;
 }
 
-export default function DailyRanking() {
+type DailyRankingProps = {
+  highlightUid?: string;
+  optimisticEntry?: RankingUser | null;
+};
+
+export default function DailyRanking({ highlightUid, optimisticEntry }: DailyRankingProps) {
   const [users, setUsers] = useState<RankingUser[]>([]);
 
   useEffect(() => {
@@ -31,7 +36,10 @@ export default function DailyRanking() {
             score: Number(data.score || 0),
           };
         });
-        setUsers(list);
+        const mergedList = optimisticEntry && !list.some((user) => user.uid === optimisticEntry.uid)
+          ? [...list, optimisticEntry].sort((first, second) => second.score - first.score)
+          : list;
+        setUsers(mergedList);
       },
       () => {
         toast.error("Classement indisponible pour le moment.");
@@ -39,7 +47,7 @@ export default function DailyRanking() {
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [optimisticEntry]);
 
   const getMedal = (index: number) => {
     if (index === 0) return <Trophy className="w-5 h-5 text-amber-500" />;
@@ -62,7 +70,11 @@ export default function DailyRanking() {
           {users.map((user, idx) => (
             <div
               key={user.uid}
-              className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800"
+              className={`flex items-center justify-between rounded-lg p-2 ${
+                highlightUid === user.uid
+                  ? "bg-emerald-50 ring-1 ring-emerald-300 dark:bg-emerald-950/30 dark:ring-emerald-800"
+                  : "bg-slate-50 dark:bg-slate-800"
+              }`}
             >
               <div className="flex items-center gap-3">
                 <span className="w-6 text-center font-bold text-sm">{idx + 1}</span>

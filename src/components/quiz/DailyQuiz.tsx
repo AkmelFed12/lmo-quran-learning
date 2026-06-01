@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { getSeenQuestionSignatures, recordQuestionBatchSeen, recordQuestionResult } from "@/lib/question-history";
+import DailyRanking from "@/components/quiz/DailyRanking";
 import {
   QUESTION_BANK_SIZE,
   QUESTION_CATEGORY_LABELS,
@@ -147,33 +148,39 @@ function clearPendingDailyQuizSave() {
 }
 
 async function saveDailyQuizResult(payload: PendingDailyQuizSave) {
-  const rankingSave = setDoc(
-    doc(db, "rankings", payload.date, "users", payload.uid),
-    {
-      displayName: payload.displayName,
-      score: payload.score,
-      total: payload.total,
-      uid: payload.uid,
-      updatedAt: payload.completedAt,
-    },
-    { merge: true }
-  );
-
-  const progressSave = setDoc(
-    doc(db, "progress", payload.uid),
-    {
-      quiz: {
-        lastDailyScore: payload.score,
-        lastDailyTotal: payload.total,
-        lastDailyQuizAt: payload.completedAt,
+  const rankingResult = await Promise.allSettled([
+    setDoc(
+      doc(db, "rankings", payload.date, "users", payload.uid),
+      {
+        displayName: payload.displayName,
+        score: payload.score,
+        total: payload.total,
+        uid: payload.uid,
+        updatedAt: payload.completedAt,
       },
-      "stats.xp": increment(payload.score * 10),
-    },
-    { merge: true }
-  );
+      { merge: true }
+    ),
+  ]);
 
-  const results = await Promise.allSettled([rankingSave, progressSave]);
-  return results.filter((result) => result.status === "rejected");
+  const progressResult = await Promise.allSettled([
+    setDoc(
+      doc(db, "progress", payload.uid),
+      {
+        quiz: {
+          lastDailyScore: payload.score,
+          lastDailyTotal: payload.total,
+          lastDailyQuizAt: payload.completedAt,
+        },
+        "stats.xp": increment(payload.score * 10),
+      },
+      { merge: true }
+    ),
+  ]);
+
+  return {
+    rankingSaved: rankingResult[0].status === "fulfilled",
+    progressSaved: progressResult[0].status === "fulfilled",
+  };
 }
 
 export default function DailyQuiz() {
@@ -190,6 +197,7 @@ export default function DailyQuiz() {
   const [error, setError] = useState<string | null>(null);
   const [alreadyPlayed, setAlreadyPlayed] = useState(false);
   const [previousScore, setPreviousScore] = useState<number | null>(null);
+  const [rankingEntry, setRankingEntry] = useState<{ uid: string; displayName: string; score: number } | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const autoAdvanceRef = useRef<NodeJS.Timeout | null>(null);
   const quizOpen = isDailyQuizOpen(now);
@@ -225,8 +233,8 @@ export default function DailyQuiz() {
       const pending = readPendingDailyQuizSave();
       if (!pending || pending.uid !== user.uid) return;
 
-      const failedSaves = await saveDailyQuizResult(pending);
-      if (failedSaves.length === 0) {
+      const saveStatus = await saveDailyQuizResult(pending);
+      if (saveStatus.rankingSaved && saveStatus.progressSaved) {
         clearPendingDailyQuizSave();
         toast.success("Score quotidien synchronisé.");
       }
@@ -335,15 +343,23 @@ export default function DailyQuiz() {
         uid: user.uid,
         completedAt: new Date().toISOString(),
       };
-      const failedSaves = await saveDailyQuizResult(payload);
+      setRankingEntry({
+        uid: payload.uid,
+        displayName: payload.displayName,
+        score: payload.score,
+      });
 
-      if (failedSaves.length === 0) {
+      const saveStatus = await saveDailyQuizResult(payload);
+
+      if (saveStatus.rankingSaved && saveStatus.progressSaved) {
         clearPendingDailyQuizSave();
-        toast.success("Score enregistré.");
+        toast.success("Score enregistré et classement mis à jour.");
+      } else if (saveStatus.rankingSaved) {
+        writePendingDailyQuizSave(payload);
+        toast.success("Score ajouté au classement.");
       } else {
         writePendingDailyQuizSave(payload);
-        console.warn("Sauvegarde partielle du quiz quotidien :", failedSaves);
-        toast.info("Score affiché. La synchronisation sera retentée lors de votre prochaine activité.");
+        toast.info("Classement affiché ici. La mise à jour en ligne sera retentée automatiquement.");
       }
     },
     [alreadyPlayed, answers, questions, submitted, today, user]
@@ -460,6 +476,8 @@ export default function DailyQuiz() {
             Sélection issue de la banque pédagogique : {QUESTION_BANK_SIZE.toLocaleString("fr-FR")} items.
           </p>
         </div>
+
+        <DailyRanking highlightUid={user?.uid} optimisticEntry={rankingEntry} />
 
         {questions.map((question) => {
           const isCorrect = answers[question.id] === question.answer;
