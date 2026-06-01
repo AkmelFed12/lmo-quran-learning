@@ -364,6 +364,10 @@ export default function QuranReader({ surahId }: { surahId: number }) {
     toast.success(quality === "easy" ? "Verset marqué comme fluide." : "Verset ajouté aux révisions.");
   };
 
+  const scrollToAyah = (ayahNumber: number) => {
+    ayahRefs.current[ayahNumber]?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
   const stopAudio = () => {
     audioRef.current?.pause();
     audioRef.current = null;
@@ -471,6 +475,8 @@ export default function QuranReader({ surahId }: { surahId: number }) {
   const arabicText = nightReader ? "text-ivory" : "text-slate-950 dark:text-white";
   const translationText = nightReader ? "text-slate-200" : "text-slate-700 dark:text-slate-300";
   const transliterationText = nightReader ? "text-slate-300" : "text-slate-500 dark:text-slate-400";
+  const firstBookmarkedAyah = bookmarkedAyahs[0] ?? null;
+  const noteCount = Object.keys(ayahNotes).length;
   const ayahSurface = nightReader
     ? "border-white/10 bg-white/[0.055] text-slate-100"
     : "border-emerald-900/10 bg-ivory/70 text-slate-900 dark:border-white/10 dark:bg-white/[0.035] dark:text-slate-100";
@@ -598,6 +604,40 @@ export default function QuranReader({ surahId }: { surahId: number }) {
         </header>
 
         <div className="space-y-5 p-4 sm:p-6">
+          {(resumeAyah || firstBookmarkedAyah || noteCount > 0) && (
+            <div className={`rounded-[1.5rem] border p-4 ${
+              nightReader
+                ? "border-white/10 bg-white/[0.055]"
+                : "border-emerald-900/10 bg-emerald-50/80 dark:border-white/10 dark:bg-emerald-950/20"
+            }`}>
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <p className={`text-sm font-bold ${nightReader ? "text-gold" : "text-emerald-950 dark:text-gold"}`}>
+                    Repères personnels
+                  </p>
+                  <p className={`mt-1 text-xs leading-6 ${nightReader ? "text-slate-300" : "text-slate-600 dark:text-slate-300"}`}>
+                    {bookmarkedAyahs.length} marque-page(s), {noteCount} note(s)
+                    {resumeAyah ? `, dernière écoute au verset ${resumeAyah}` : ""}.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {resumeAyah && (
+                    <button onClick={() => scrollToAyah(resumeAyah)} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-emerald-950 shadow-sm transition hover:bg-emerald-50 dark:bg-slate-950 dark:text-emerald-100 dark:hover:bg-slate-800">
+                      <BookOpen className="h-4 w-4" />
+                      Aller au verset {resumeAyah}
+                    </button>
+                  )}
+                  {firstBookmarkedAyah && (
+                    <button onClick={() => scrollToAyah(firstBookmarkedAyah)} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-sky-100 px-4 py-2 text-xs font-bold text-sky-950 transition hover:bg-sky-200 dark:bg-sky-950/40 dark:text-sky-100">
+                      <BookmarkCheck className="h-4 w-4" />
+                      Premier marque-page
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {basmala && showArabic && !hiddenMode && (
             <p className={`arabic-reading rounded-3xl border p-5 text-center text-3xl ${basmalaSurface}`} dir="rtl">
               {basmala}
