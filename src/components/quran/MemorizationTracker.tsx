@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowRight, Brain, BarChart3, CalendarClock, CheckCircle2, ShieldAlert } from "lucide-react";
+import { ArrowRight, Brain, BarChart3, CalendarClock, CheckCircle2, Clock3, ShieldAlert } from "lucide-react";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -114,12 +114,44 @@ export default function MemorizationTracker() {
   const dueRevisions = sessions
     .map((session, index) => ({ session, index }))
     .filter(({ session }) => session.nextReviewDate <= today);
+  const overdueRevisions = dueRevisions.filter(({ session }) => session.nextReviewDate < today);
+  const fragileDueRevisions = dueRevisions.filter(({ session }) => (session.qualityHistory || []).slice(-2).some((quality) => quality <= 2));
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowKey = tomorrow.toISOString().split("T")[0];
   const tomorrowRevisions = sessions.filter(s => s.nextReviewDate === tomorrowKey).length;
   const fragileSessions = sessions.filter(s => (s.qualityHistory || []).slice(-2).some((quality) => quality <= 2)).length;
   const stableSessions = sessions.filter(s => s.repetitionCount >= 3 && (s.qualityHistory || []).slice(-2).every((quality) => quality >= 4)).length;
+  const priorityCards = [
+    {
+      label: "En retard",
+      value: overdueRevisions.length,
+      text: "à traiter en premier",
+      icon: Clock3,
+      className: "border-red-200 bg-red-50 text-red-950 dark:border-red-900/60 dark:bg-red-950/25 dark:text-red-100",
+    },
+    {
+      label: "Urgent aujourd'hui",
+      value: Math.max(dueRevisions.length - overdueRevisions.length, 0),
+      text: "prévu pour aujourd'hui",
+      icon: CalendarClock,
+      className: "border-amber-200 bg-amber-50 text-amber-950 dark:border-amber-900/60 dark:bg-amber-950/25 dark:text-amber-100",
+    },
+    {
+      label: "Fragile",
+      value: fragileDueRevisions.length,
+      text: "à revoir lentement",
+      icon: ShieldAlert,
+      className: "border-rose-200 bg-rose-50 text-rose-950 dark:border-rose-900/60 dark:bg-rose-950/25 dark:text-rose-100",
+    },
+    {
+      label: "Stable",
+      value: stableSessions,
+      text: "rythme solide",
+      icon: CheckCircle2,
+      className: "border-emerald-200 bg-emerald-50 text-emerald-950 dark:border-emerald-900/60 dark:bg-emerald-950/25 dark:text-emerald-100",
+    },
+  ];
 
   // Données pour le graphique d'intervalles
   const intervalChartData = {
@@ -168,6 +200,25 @@ export default function MemorizationTracker() {
           </CardContent>
         </Card>
       </section>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Priorité de révision</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-4">
+          {priorityCards.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div key={item.label} className={`rounded-2xl border p-4 ${item.className}`}>
+                <Icon className="h-5 w-5" />
+                <p className="mt-3 text-2xl font-bold">{item.value}</p>
+                <p className="mt-1 text-sm font-semibold">{item.label}</p>
+                <p className="mt-1 text-xs opacity-80">{item.text}</p>
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
