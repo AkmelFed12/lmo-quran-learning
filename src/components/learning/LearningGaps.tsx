@@ -79,6 +79,11 @@ export default function LearningGaps() {
     0
   );
   const finished = practiceQuestions.length > 0 && currentIndex >= practiceQuestions.length;
+  const activeCategoryLabel = activeCategory ? QUESTION_CATEGORY_LABELS[activeCategory] : "Aucun thème";
+  const activeCategoryAdvice = activeCategory ? getAdvice(activeCategory) : "Commencez par quelques exercices pour détecter un point à renforcer.";
+  const sessionProgress = practiceQuestions.length > 0
+    ? Math.min(100, Math.round((Math.min(currentIndex, practiceQuestions.length) / practiceQuestions.length) * 100))
+    : 0;
 
   const restartPractice = (category = activeCategory) => {
     setActiveCategory(category);
@@ -119,6 +124,20 @@ export default function LearningGaps() {
         <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 dark:text-slate-300">
           Cette page s'appuie sur vos réponses récentes pour proposer une révision courte, utile et différente à chaque session.
         </p>
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl bg-emerald-50 p-4 dark:bg-emerald-950/30">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-800 dark:text-gold">Thèmes faibles</p>
+            <p className="mt-2 text-2xl font-bold text-slate-950 dark:text-white">{weakCategories.length}</p>
+          </div>
+          <div className="rounded-2xl bg-amber-50 p-4 dark:bg-amber-950/30">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-800 dark:text-gold">Erreurs récentes</p>
+            <p className="mt-2 text-2xl font-bold text-slate-950 dark:text-white">{recentMistakes.length}</p>
+          </div>
+          <div className="rounded-2xl bg-sky-50 p-4 dark:bg-sky-950/30">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-sky-800 dark:text-sky-100">Session</p>
+            <p className="mt-2 text-2xl font-bold text-slate-950 dark:text-white">{sessionProgress}%</p>
+          </div>
+        </div>
       </header>
 
       <section className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
@@ -196,6 +215,22 @@ export default function LearningGaps() {
             </div>
           </CardHeader>
           <CardContent className="space-y-5 p-5">
+            <div className="rounded-[1.5rem] border border-emerald-900/10 bg-ivory/70 p-4 dark:border-white/10 dark:bg-white/[0.04]">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-gold">Thème actif</p>
+                  <h2 className="mt-1 text-xl font-heading font-bold text-slate-950 dark:text-white">{activeCategoryLabel}</h2>
+                  <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{activeCategoryAdvice}</p>
+                </div>
+                <span className="rounded-full bg-emerald-100 px-4 py-2 text-xs font-bold text-emerald-950 dark:bg-emerald-950/60 dark:text-emerald-100">
+                  Score {score}/{practiceQuestions.length || 0}
+                </span>
+              </div>
+              <div className="mt-4 h-2 rounded-full bg-emerald-900/10 dark:bg-white/10">
+                <div className="h-full rounded-full bg-gold transition-all" style={{ width: `${sessionProgress}%` }} />
+              </div>
+            </div>
+
             {!activeCategory ? (
               <p className="rounded-2xl bg-ivory p-4 text-sm text-slate-600 dark:bg-white/[0.04] dark:text-slate-300">
                 Aucune lacune détectée pour le moment. Commencez par un test dans “Exercices & tests”.
