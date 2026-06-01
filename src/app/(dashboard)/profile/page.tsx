@@ -15,7 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { User, Award, BookOpen, Target, Camera, Key } from "lucide-react";
+import { User, Award, BookOpen, Target, Camera, Key, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import { getFirebaseAuthMessage } from "@/lib/auth-errors";
 
@@ -135,8 +135,28 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Profil</h2>
+    <div className="mx-auto max-w-6xl space-y-6">
+      <header className="card-premium overflow-hidden p-0">
+        <div className="grid gap-5 bg-gradient-to-br from-emerald-950 via-slate-950 to-emerald-900 p-5 text-white sm:p-6 lg:grid-cols-[1fr_0.85fr]">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-gold">
+              <User className="h-4 w-4" />
+              Profil
+            </div>
+            <h1 className="mt-4 text-3xl font-heading font-bold sm:text-4xl">Votre espace personnel</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-emerald-50/80">
+              Ajustez votre nom affiché, votre objectif quotidien et vos informations de sécurité.
+            </p>
+          </div>
+          <div className="rounded-[1.5rem] border border-white/10 bg-white/10 p-5">
+            <ShieldCheck className="h-7 w-7 text-gold" />
+            <p className="mt-4 text-lg font-bold">{user?.email || "Compte connecté"}</p>
+            <p className="mt-2 text-sm leading-6 text-emerald-50/75">
+              Les changements sont enregistrés avec votre compte lorsque la connexion est disponible.
+            </p>
+          </div>
+        </div>
+      </header>
 
       <Card className="overflow-hidden border-emerald-100 bg-gradient-to-br from-emerald-600 to-teal-600 text-white dark:border-emerald-900">
         <CardContent className="p-6">
@@ -165,7 +185,7 @@ export default function ProfilePage() {
       </Card>
 
       {/* Carte identité */}
-      <Card>
+      <Card className="border-emerald-900/10 bg-white/90 shadow-sm dark:border-white/10 dark:bg-slate-900/75">
         <CardHeader><CardTitle>Informations personnelles</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -194,28 +214,30 @@ export default function ProfilePage() {
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium">Nom affiché</label>
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Nom affiché</label>
             <input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2"
+              className="mt-2 min-h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-gold dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
             />
           </div>
           <div>
-            <label className="text-sm font-medium">Objectif quotidien (versets)</label>
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Objectif quotidien (versets)</label>
             <input
               type="number"
+              min={1}
+              max={100}
               value={dailyGoal}
               onChange={(e) => setDailyGoal(+e.target.value)}
-              className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2"
+              className="mt-2 min-h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-gold dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
             />
           </div>
-          <Button onClick={saveProfile} className="w-full sm:w-auto">Sauvegarder</Button>
+          <Button onClick={saveProfile} className="min-h-11 w-full rounded-full bg-emerald-900 text-white hover:bg-emerald-800 sm:w-auto">Sauvegarder</Button>
         </CardContent>
       </Card>
 
       {/* Changement de mot de passe */}
-      <Card>
+      <Card className="border-emerald-900/10 bg-white/90 shadow-sm dark:border-white/10 dark:bg-slate-900/75">
         <CardHeader><CardTitle>Modifier le mot de passe</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <input
@@ -223,19 +245,19 @@ export default function ProfilePage() {
             placeholder="Mot de passe actuel"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2"
+            className="min-h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-gold dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
           />
           <input
             type="password"
             placeholder="Nouveau mot de passe"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2"
+            className="min-h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-gold dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
           />
           <Button
             onClick={handleChangePassword}
             disabled={changingPassword}
-            className="w-full sm:w-auto"
+            className="min-h-11 w-full rounded-full sm:w-auto"
           >
             <Key className="w-4 h-4 mr-2" />
             {changingPassword ? "Modification…" : "Changer le mot de passe"}
