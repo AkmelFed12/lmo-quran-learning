@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { CheckCircle2, RefreshCw, Moon, Sun, Globe, Bell, BellOff, Save, ShieldCheck, WifiOff } from "lucide-react";
+import { CheckCircle2, RefreshCw, Moon, Sun, Globe, Bell, BellOff, Save, ShieldCheck, WifiOff, Settings2 } from "lucide-react";
 
 export default function SettingsPage() {
   // Toujours appeler les hooks en premier, sans condition
@@ -99,10 +99,35 @@ export default function SettingsPage() {
   if (!mounted) return null;
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Paramètres</h2>
+    <div className="mx-auto max-w-6xl space-y-6">
+      <header className="card-premium overflow-hidden p-0">
+        <div className="grid gap-5 bg-gradient-to-br from-emerald-950 via-slate-950 to-emerald-900 p-5 text-white sm:p-6 lg:grid-cols-[1fr_0.85fr]">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-gold">
+              <Settings2 className="h-4 w-4" />
+              Paramètres
+            </div>
+            <h1 className="mt-4 text-3xl font-heading font-bold sm:text-4xl">Préférences du compte</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-emerald-50/80">
+              Ajustez l'apparence, la langue, les rappels et les options mobiles. Les changements importants peuvent être sauvegardés sur votre compte.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+            <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-gold">Apparence</p>
+              <p className="mt-2 text-lg font-bold">{resolvedTheme === "dark" ? "Mode sombre" : "Mode clair"}</p>
+              <p className="mt-1 text-xs text-emerald-50/75">Préférence actuelle : {theme}</p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-gold">Mobile</p>
+              <p className="mt-2 text-lg font-bold">{lowDataMode ? "Faible connexion activé" : "Mode standard"}</p>
+              <p className="mt-1 text-xs text-emerald-50/75">Notifications : {notificationsEnabled ? "activées" : "non activées"}</p>
+            </div>
+          </div>
+        </div>
+      </header>
 
-      <Card>
+      <Card className="border-emerald-900/10 bg-white/90 shadow-sm dark:border-white/10 dark:bg-slate-900/75">
         <CardHeader>
           <CardTitle>État du compte</CardTitle>
         </CardHeader>
